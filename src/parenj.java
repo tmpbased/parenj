@@ -596,11 +596,11 @@ public class parenj {
                 case INT: { // (int X)
                     return new node(eval(nvalue.get(1), env).intValue());}
                 case READ_STRING: { // (read-string X)
-                    return new node(parse(eval(nvalue.get(1), env).stringValue()).get(0));}
+                    return new node(parse(eval(nvalue.get(1), env).stringValue()).get(0).value);}
                 case TYPE: { // (type X)
                     return new node(eval(nvalue.get(1), env).getClass());}
                 case EVAL: { // (eval X)
-                    return new node(eval(eval(nvalue.get(1), env), env));}
+                    return new node(eval(eval(nvalue.get(1), env), env).value);}
                 case QUOTE: { // (quote X)
                     return nvalue.get(1);}
                 case FN: { // (fn (ARGUMENT ..) BODY) => evaluates to self
