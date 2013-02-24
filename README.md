@@ -24,9 +24,9 @@ Functions:
  ! != % && * + ++ - -- /
  < <= == > >= ^ apply ceil char-at chr
  dec double eval exit filter floor fn for if inc
- int list ln log10 map pr prn quote rand range
- read-string set sqrt strcat string strlen type when while ||
-
+ int length list ln log10 map nth pr prn quote
+ rand range read-string set sqrt strcat string strlen type when
+ while ||
 Etc.:
  (list) [string] ; end-of-line comment
 ```
@@ -90,6 +90,16 @@ true : class java.lang.Boolean
 ```
 
 In a function, you cannot change outer environment.
+
+### List ###
+```
+> (nth 1 (list 2 4 6))
+  
+4 : class java.lang.Integer
+> (length (list 1 2 3))
+  
+3 : class java.lang.Integer
+```
 
 ### [Project Euler Problem 1](http://projecteuler.net/problem=1) ###
 ```

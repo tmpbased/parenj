@@ -120,7 +120,7 @@ public class parenj {
         IF, WHEN, FOR, WHILE,
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
-        EVAL, QUOTE, FN, LIST, APPLY, MAP, FILTER, RANGE,
+        EVAL, QUOTE, FN, LIST, APPLY, MAP, FILTER, RANGE, NTH, LENGTH,
         PR, PRN, EXIT
     }
     
@@ -214,6 +214,8 @@ public class parenj {
         builtin_map.put("map", builtin.MAP);
         builtin_map.put("filter", builtin.FILTER);
         builtin_map.put("range", builtin.RANGE);
+        builtin_map.put("nth", builtin.NTH);
+        builtin_map.put("length", builtin.LENGTH);
         builtin_map.put("set", builtin.SET);
         builtin_map.put("pr", builtin.PR);
         builtin_map.put("prn", builtin.PRN);
@@ -696,6 +698,13 @@ public class parenj {
                     }
                     return new node(ret);
                 }
+                case NTH: { // (nth INDEX LIST)
+                    int i = eval(nvalue.get(1), env).intValue();
+                    Vector<node> lst = eval(nvalue.get(2), env).vectorValue();
+                    return lst.get(i);}
+                case LENGTH: { // (length LIST)                    
+                    Vector<node> lst = eval(nvalue.get(1), env).vectorValue();
+                    return new node(lst.size());}                
                 case PR: // (pr X ..)
                     {                        
                         for (int i = 1; i < nvalue.size(); i++) {
