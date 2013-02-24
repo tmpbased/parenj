@@ -2,6 +2,18 @@
 
 (C) 2013 Kim, Taegyoon
 
+## Compile ##
+```
+cd src
+javac parenj.java
+```
+
+## Run ##
+```
+cd src
+java parenj
+```
+
 ## Reference ##
 ```
 Parenj (C) 2013 Kim, Taegyoon
