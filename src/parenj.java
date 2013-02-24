@@ -144,7 +144,6 @@ public class parenj {
     static Hashtable<String, node> global_env = new Hashtable<String, node>();; // variables
 
     static void init() {
-//        srand((unsigned int) time(0));
         global_env.put("true", new node(true));
         global_env.put("false", new node(false));
         global_env.put("e", new node(2.71828182845904523536));
