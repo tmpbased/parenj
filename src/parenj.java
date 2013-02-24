@@ -1,29 +1,13 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Hashtable;
+import java.util.TreeSet;
 import java.util.Vector;
 
 //(C) 2013 Kim, Taegyoon
 //Parenj: The Paren Programming Language written in Java
 
 public class parenj {
-    static void print_logo() {
-        System.out.println(
-            "Parenj (C) 2013 Kim, Taegyoon\n" +
-            "Press Enter key twice to evaluate.\n" +
-            "Constants:\n" +
-            "true false e pi\n" +
-            "Functions:\n" +
-            "+ - * / ^ % sqrt inc dec ++ -- floor ceil ln log10 rand\n" +
-            "== != < > <= >= && || !\n" +
-            "if when for while\n" +
-            "'string [string] strlen strcat char-at chr\n" +
-            "int double string read-string type set\n" +
-            "(list) eval quote fn\n" +
-            "pr prn exit\n" +
-            "; end-of-line comment");
-    }
-   
     static class node {        
         boolean isSymbol;
         Object value;
@@ -136,18 +120,53 @@ public class parenj {
         IF, WHEN, FOR, WHILE,
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
-        EVAL, QUOTE, FN,
+        EVAL, QUOTE, FN, LIST, APPLY, MAP, FILTER, RANGE,
         PR, PRN, EXIT
     }
     
     static Hashtable<String, builtin> builtin_map = new Hashtable<String, builtin>();
     static Hashtable<String, node> global_env = new Hashtable<String, node>();; // variables
+    
+    static void print_symbols() {
+        int i = 0;
+        for (String key : new TreeSet<String>(global_env.keySet())) {
+            System.out.print(" " + key);
+            i++;
+            if (i % 10 == 0) System.out.println();            
+        }
+        System.out.println();
+    }
+    
+    static void print_functions() {
+        int i = 0;
+        for (String key : new TreeSet<String>(builtin_map.keySet())) {            
+            System.out.print(" " + key);
+            i++;
+            if (i % 10 == 0) System.out.println();
+        }
+        System.out.println();
+    }
+    
+    static void print_logo() {
+        System.out.println(
+            "Parenj (C) 2013 Kim, Taegyoon\n" +
+            "Press Enter key twice to evaluate.");
+        System.out.println(
+            "Predefined Symbols:");
+        print_symbols();
+        System.out.println(
+            "Functions:");
+        print_functions();
+        System.out.println(
+            "Etc.:\n" +
+            " (list) [string] ; end-of-line comment");
+    }    
 
     static void init() {
         global_env.put("true", new node(true));
         global_env.put("false", new node(false));
-        global_env.put("e", new node(2.71828182845904523536));
-        global_env.put("pi", new node(3.14159265358979323846));
+        global_env.put("E", new node(2.71828182845904523536));
+        global_env.put("PI", new node(3.14159265358979323846));
 
         builtin_map.put("+", builtin.PLUS);
         builtin_map.put("-", builtin.MINUS);
@@ -164,8 +183,6 @@ public class parenj {
         builtin_map.put("ceil", builtin.CEIL);
         builtin_map.put("ln", builtin.LN);
         builtin_map.put("log10", builtin.LOG10);
-        builtin_map.put("e", builtin.E);
-        builtin_map.put("pi", builtin.PI);
         builtin_map.put("rand", builtin.RAND);
         builtin_map.put("==", builtin.EQEQ);
         builtin_map.put("!=", builtin.NOTEQ);
@@ -192,6 +209,11 @@ public class parenj {
         builtin_map.put("eval", builtin.EVAL);
         builtin_map.put("quote", builtin.QUOTE);
         builtin_map.put("fn", builtin.FN);
+        builtin_map.put("list", builtin.LIST);
+        builtin_map.put("apply", builtin.APPLY);
+        builtin_map.put("map", builtin.MAP);
+        builtin_map.put("filter", builtin.FILTER);
+        builtin_map.put("range", builtin.RANGE);
         builtin_map.put("set", builtin.SET);
         builtin_map.put("pr", builtin.PR);
         builtin_map.put("prn", builtin.PRN);
@@ -583,7 +605,7 @@ public class parenj {
                         acc += eval(nvalue.get(i), env).stringValue();
                     }
                     return new node(acc);}
-                case CHAR_AT: { // (char-at X)
+                case CHAR_AT: { // (char-at X POSITION)
                     return new node((int) eval(nvalue.get(1), env).stringValue().charAt(eval(nvalue.get(2), env).intValue()));}
                 case CHR: { // (chr X)                    
                     char[] temp = {0};
@@ -605,6 +627,75 @@ public class parenj {
                     return nvalue.get(1);}
                 case FN: { // (fn (ARGUMENT ..) BODY) => evaluates to self
                     return new node(nvalue);}
+                case LIST: { // (list X ..)
+                    Vector<node> ret = new Vector<node>();
+                    for (int i = 1; i < nvalue.size(); i++) {
+                        ret.add(eval(nvalue.get(i), env));
+                    }
+                    return new node(ret);}
+                case APPLY: { // (apply FUNC LIST)
+                    Vector<node> expr = new Vector<node>();
+                    node f = eval(nvalue.get(1), env);
+                    expr.add(f);
+                    Vector<node> lst = eval(nvalue.get(2), env).vectorValue();
+                    for (int i = 0; i < lst.size(); i++) {
+                        expr.add(lst.get(i));
+                    }                    
+                    return eval(new node(expr), env);
+                }
+                case MAP: { // (map FUNC LIST)
+                    node f = eval(nvalue.get(1), env);
+                    Vector<node> lst = eval(nvalue.get(2), env).vectorValue();
+                    Vector<node> acc = new Vector<node>();
+                    for (int i = 0; i < lst.size(); i++) {
+                        Vector<node> expr = new Vector<node>();                        
+                        expr.add(f);
+                        expr.add(lst.get(i)); // (FUNC ITEM)
+                        acc.add(eval(new node(expr), env));
+                    }                    
+                    return new node(acc);
+                }
+                case FILTER: { // (filter FUNC LIST)
+                    node f = eval(nvalue.get(1), env);
+                    Vector<node> lst = eval(nvalue.get(2), env).vectorValue();
+                    Vector<node> acc = new Vector<node>();
+                    for (int i = 0; i < lst.size(); i++) {
+                        Vector<node> expr = new Vector<node>(); // (FUNC ITEM)
+                        node item = lst.get(i);
+                        expr.add(f);
+                        expr.add(item);
+                        node ret = eval(new node(expr), env);
+                        if (ret.booleanValue()) acc.add(item);
+                    }                    
+                    return new node(acc);
+                }
+                case RANGE: { // (range START END STEP)
+                    node start = eval(nvalue.get(2), env);                    
+                    Vector<node> ret = new Vector<node>();
+                    if (start.value instanceof Integer) {
+                        int a = eval(nvalue.get(1), env).intValue();
+                        int last = eval(nvalue.get(2), env).intValue();
+                        int step = eval(nvalue.get(3), env).intValue();                        
+                        if (step >= 0) {
+                            for (; a <= last; a += step) {
+                                ret.add(new node(a));}}
+                        else {
+                            for (; a >= last; a += step) {
+                                ret.add(new node(a));}}
+                    }
+                    else {
+                        double a = eval(nvalue.get(1), env).doubleValue();
+                        double last = eval(nvalue.get(2), env).doubleValue();
+                        double step = eval(nvalue.get(3), env).doubleValue();                        
+                        if (step >= 0) {
+                            for (; a <= last; a += step) {
+                                ret.add(new node(a));}}
+                        else {
+                            for (; a >= last; a += step) {
+                                ret.add(new node(a));}}
+                    }
+                    return new node(ret);
+                }
                 case PR: // (pr X ..)
                     {                        
                         for (int i = 1; i < nvalue.size(); i++) {
@@ -686,8 +777,8 @@ public class parenj {
     }
     
     public static void main(String[] args) {
-        print_logo();
         init();
+        print_logo();        
         repl();
         System.out.println();
     }

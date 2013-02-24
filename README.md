@@ -18,17 +18,17 @@ java parenj
 ```
 Parenj (C) 2013 Kim, Taegyoon
 Press Enter key twice to evaluate.
-Constants:
-true false e pi
+Predefined Symbols:
+ E PI false true
 Functions:
-+ - * / ^ % sqrt inc dec ++ -- floor ceil ln log10 rand
-== != < > <= >= && || !
-if when for while
-'string [string] strlen strcat char-at chr
-int double string read-string type set
-(list) eval quote fn
-pr prn exit
-; end-of-line comment
+ ! != % && * + ++ - -- /
+ < <= == > >= ^ apply ceil char-at chr
+ dec double eval exit filter floor fn for if inc
+ int list ln log10 map pr prn quote rand range
+ read-string set sqrt strcat string strlen type when while ||
+
+Etc.:
+ (list) [string] ; end-of-line comment
 ```
 
 ## Examples ##
@@ -63,6 +63,15 @@ false : class java.lang.Boolean
 > (even? 4)
 
 true : class java.lang.Boolean
+> (apply + (list 1 2 3))
+  
+6 : class java.lang.Integer
+> (map sqrt (list 1 2 3 4))
+  
+[1.0, 1.4142135623730951, 1.7320508075688772, 2.0] : class java.util.Vector
+> (filter even? (list 1 2 3 4 5))
+  
+[2, 4] : class java.util.Vector
 ```
 
 #### Recursion ####
@@ -89,6 +98,11 @@ In a function, you cannot change outer environment.
     (when (|| (== 0 (% i 3)) (== 0 (% i 5)))
         (set s (+ s i))))
 (prn s)
+```
+=> 233168
+
+```
+(apply + (filter (fn (x) (|| (== 0 (% x 3)) (== 0 (% x 5)))) (range 1 999 1)))
 ```
 => 233168
 
