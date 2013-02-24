@@ -670,7 +670,7 @@ public class parenj {
                     return new node(acc);
                 }
                 case RANGE: { // (range START END STEP)
-                    node start = eval(nvalue.get(2), env);                    
+                    node start = eval(nvalue.get(1), env);                    
                     Vector<node> ret = new Vector<node>();
                     if (start.value instanceof Integer) {
                         int a = eval(nvalue.get(1), env).intValue();
