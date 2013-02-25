@@ -36,13 +36,16 @@ public class parenj {
         Vector<node> vectorValue() {
             return (Vector<node>)value;
         }
-        public String str_with_type() {
-            String typeStr;
+        
+        String type() {
             if (value == null)
-                typeStr = "null";
+                return "null";
             else
-                typeStr = value.getClass().toString();
-            return stringValue() + " : " + typeStr;
+                return value.getClass().getName();        	
+        }
+        
+        String str_with_type() {
+            return stringValue() + " : " + type();
         }
         public String toString() {
             return stringValue();
@@ -622,7 +625,7 @@ public class parenj {
                 case READ_STRING: { // (read-string X)
                     return new node(parse(eval(nvalue.get(1), env).stringValue()).get(0).value);}
                 case TYPE: { // (type X)
-                    return new node(eval(nvalue.get(1), env).getClass());}
+                    return new node(eval(nvalue.get(1), env).type());}
                 case EVAL: { // (eval X)
                     return new node(eval(eval(nvalue.get(1), env), env).value);}
                 case QUOTE: { // (quote X)
