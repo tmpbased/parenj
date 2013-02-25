@@ -652,10 +652,11 @@ public class parenj {
                     node f = eval(nvalue.get(1), env);
                     Vector<node> lst = eval(nvalue.get(2), env).vectorValue();
                     Vector<node> acc = new Vector<node>();
+                    Vector<node> expr = new Vector<node>(); // (FUNC ITEM)                       
+                    expr.add(f);
+                    expr.add(null);
                     for (int i = 0; i < lst.size(); i++) {
-                        Vector<node> expr = new Vector<node>();                        
-                        expr.add(f);
-                        expr.add(lst.get(i)); // (FUNC ITEM)
+                    	expr.set(1, lst.get(i));
                         acc.add(eval(new node(expr), env));
                     }                    
                     return new node(acc);
@@ -664,11 +665,12 @@ public class parenj {
                     node f = eval(nvalue.get(1), env);
                     Vector<node> lst = eval(nvalue.get(2), env).vectorValue();
                     Vector<node> acc = new Vector<node>();
+                    Vector<node> expr = new Vector<node>(); // (FUNC ITEM)                    
+                    expr.add(f);
+                    expr.add(null);
                     for (int i = 0; i < lst.size(); i++) {
-                        Vector<node> expr = new Vector<node>(); // (FUNC ITEM)
-                        node item = lst.get(i);
-                        expr.add(f);
-                        expr.add(item);
+                    	node item = lst.get(i);
+                        expr.set(1, item);
                         node ret = eval(new node(expr), env);
                         if (ret.booleanValue()) acc.add(item);
                     }                    
