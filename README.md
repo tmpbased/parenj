@@ -41,37 +41,37 @@ Etc.:
 ```
 > ((fn (x y) (+ x y)) 1 2)
 
-3 : class java.lang.Integer
+3 : java.lang.Integer
 > ((fn (x) (* x 2)) 3)
 
-6 : class java.lang.Integer
+6 : java.lang.Integer
 > (set sum (fn (x y) (+ x y)))
 
  : null
 > sum
 
-[fn, [x, y], [+, x, y]] : class java.util.Vector
+[fn, [x, y], [+, x, y]] : java.util.Vector
 > (sum 1 2)
 
-3 : class java.lang.Integer
+3 : java.lang.Integer
 > (set even? (fn (x) (== 0 (% x 2))))
 
  : null
 > (even? 3)
 
-false : class java.lang.Boolean
+false : java.lang.Boolean
 > (even? 4)
 
-true : class java.lang.Boolean
+true : java.lang.Boolean
 > (apply + (list 1 2 3))
   
-6 : class java.lang.Integer
+6 : java.lang.Integer
 > (map sqrt (list 1 2 3 4))
   
-[1.0, 1.4142135623730951, 1.7320508075688772, 2.0] : class java.util.Vector
+[1.0, 1.4142135623730951, 1.7320508075688772, 2.0] : java.util.Vector
 > (filter even? (list 1 2 3 4 5))
   
-[2, 4] : class java.util.Vector
+[2, 4] : java.util.Vector
 ```
 
 #### Recursion ####
@@ -95,10 +95,10 @@ In a function, you cannot change outer environment.
 ```
 > (nth 1 (list 2 4 6))
   
-4 : class java.lang.Integer
+4 : java.lang.Integer
 > (length (list 1 2 3))
   
-3 : class java.lang.Integer
+3 : java.lang.Integer
 ```
 
 ### [Project Euler Problem 1](http://projecteuler.net/problem=1) ###
