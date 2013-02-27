@@ -1,14 +1,15 @@
+//(C) 2013 Kim, Taegyoon
+//Parenj: The Paren Programming Language written in Java
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.Vector;
 
-//(C) 2013 Kim, Taegyoon
-//Parenj: The Paren Programming Language written in Java
-
 public class parenj {
-    static class node {        
+    static final String VERSION = "1.0";
+    static class node {
         boolean isSymbol;
         Object value;
         node () {}
@@ -120,7 +121,7 @@ public class parenj {
         IF, WHEN, FOR, WHILE,
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
-        EVAL, QUOTE, FN, LIST, APPLY, MAP, FILTER, RANGE, NTH, LENGTH,
+        EVAL, QUOTE, FN, LIST, APPLY, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN,
         PR, PRN, EXIT
     }
     
@@ -149,7 +150,7 @@ public class parenj {
     
     static void print_logo() {
         System.out.println(
-            "Parenj (C) 2013 Kim, Taegyoon\n" +
+            "Parenj " + VERSION + " (C) 2013 Kim, Taegyoon\n" +
             "Press Enter key twice to evaluate.");
         System.out.println(
             "Predefined Symbols:");
@@ -216,6 +217,7 @@ public class parenj {
         builtin_map.put("range", builtin.RANGE);
         builtin_map.put("nth", builtin.NTH);
         builtin_map.put("length", builtin.LENGTH);
+        builtin_map.put("begin", builtin.BEGIN);
         builtin_map.put("set", builtin.SET);
         builtin_map.put("pr", builtin.PR);
         builtin_map.put("prn", builtin.PRN);
@@ -704,7 +706,14 @@ public class parenj {
                     return lst.get(i);}
                 case LENGTH: { // (length LIST)                    
                     Vector<node> lst = eval(nvalue.get(1), env).vectorValue();
-                    return new node(lst.size());}                
+                    return new node(lst.size());}
+                case BEGIN: { // (begin X ..)                    
+                    int last = nvalue.size() - 1;
+                    if (last <= 0) return new node();
+                    for (int i = 1; i < last; i++) {
+                        eval(nvalue.get(i), env);
+                    }
+                    return eval(nvalue.get(last), env);}
                 case PR: // (pr X ..)
                     {                        
                         for (int i = 1; i < nvalue.size(); i++) {
