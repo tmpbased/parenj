@@ -16,17 +16,17 @@ java parenj
 
 ## Reference ##
 ```
-Parenj (C) 2013 Kim, Taegyoon
+Parenj 1.0 (C) 2013 Kim, Taegyoon
 Press Enter key twice to evaluate.
 Predefined Symbols:
  E PI false true
 Functions:
  ! != % && * + ++ - -- /
- < <= == > >= ^ apply ceil char-at chr
- dec double eval exit filter floor fn for if inc
- int length list ln log10 map nth pr prn quote
- rand range read-string set sqrt strcat string strlen type when
- while ||
+ < <= == > >= ^ apply begin ceil char-at
+ chr dec double eval exit filter floor fn for if
+ inc int length list ln log10 map nth pr prn
+ quote rand range read-string set sqrt strcat string strlen type
+ when while ||
 Etc.:
  (list) [string] ; end-of-line comment
 ```
