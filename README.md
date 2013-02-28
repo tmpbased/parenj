@@ -16,7 +16,7 @@ java parenj
 
 ## Reference ##
 ```
-Parenj 1.0 (C) 2013 Kim, Taegyoon
+Parenj 1.0.1 (C) 2013 Kim, Taegyoon
 Press Enter key twice to evaluate.
 Predefined Symbols:
  E PI false true
