@@ -129,7 +129,7 @@ public class parenj {
     }
     
     static Hashtable<String, builtin> builtin_map = new Hashtable<String, builtin>();
-    static Hashtable<String, node> global_env = new Hashtable<String, node>();; // variables
+    static Hashtable<String, node> global_env = new Hashtable<String, node>(); // variables
     
     static void print_symbols() {
         int i = 0;
