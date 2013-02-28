@@ -8,7 +8,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 public class parenj {
-    static final String VERSION = "1.0";
+    static final String VERSION = "1.0.1";
     static class node {
         boolean isSymbol;
         Object value;
@@ -760,9 +760,13 @@ public class parenj {
         }
         return eval(lst.get(last), env);
     }
+        
+    static node eval_string(String s) {
+        return eval_all(parse(s), global_env);
+    }
     
     static void eval_print(String s) {
-        System.out.println(eval_all(parse(s), global_env).str_with_type());
+        System.out.println(eval_string(s).str_with_type());
     }
     
     static void prompt() {
