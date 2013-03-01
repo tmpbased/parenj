@@ -2,6 +2,8 @@
 
 (C) 2013 Kim, Taegyoon
 
+Paren is a dialect of Lisp. It is designed to be an embedded language.
+
 ## Compile ##
 ```
 cd src
