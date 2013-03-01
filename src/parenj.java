@@ -8,7 +8,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 public class parenj {
-    static final String VERSION = "1.0.1";
+    static final String VERSION = "1.0.2";
     static class node {
         boolean isSymbol;
         Object value;
@@ -780,22 +780,19 @@ public class parenj {
     // read-eval-print loop
     static void repl() {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String lines = "";
+        String code = "";
         while (true) {
             try {
-                if (lines.length() == 0)
-                    prompt();
-                else
-                    prompt2();
+                if (code.length() == 0) prompt(); else prompt2();
                 String line = br.readLine();
-                if (line == null) { // eof
-                    eval_print(lines);
+                if (line == null) { // EOF
+                    eval_print(code);
                     break;
                 }
-                lines += "\n" + line;
+                code += "\n" + line;
                 if (line.length() == 0) {
-                    eval_print(lines);
-                    lines = "";
+                    eval_print(code);
+                    code = "";
                 }
             } catch (Exception e) {
                 e.printStackTrace();
