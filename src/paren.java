@@ -2,12 +2,14 @@
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.1.1";
+    static final String VERSION = "1.2";
     paren() {
         init();
     }
@@ -132,7 +134,7 @@ public class paren {
         IF, WHEN, FOR, WHILE,
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
-        EVAL, QUOTE, FN, LIST, APPLY, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN,
+        EVAL, QUOTE, FN, LIST, APPLY, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET,
         PR, PRN, EXIT
     }
     
@@ -229,6 +231,9 @@ public class paren {
         builtin_map.put("nth", builtin.NTH);
         builtin_map.put("length", builtin.LENGTH);
         builtin_map.put("begin", builtin.BEGIN);
+        builtin_map.put(".", builtin.DOT);
+        builtin_map.put(".get", builtin.DOTGET);
+        builtin_map.put(".set", builtin.DOTSET);
         builtin_map.put("set", builtin.SET);
         builtin_map.put("pr", builtin.PR);
         builtin_map.put("prn", builtin.PRN);
@@ -727,6 +732,81 @@ public class paren {
                         eval(nvalue.get(i), env);
                     }
                     return eval(nvalue.get(last), env);}
+                case DOT: {
+                    // Java interoperability
+                    // (. CLASS METHOD ARGUMENT ..) ; Java method invocation
+                    try {                        
+                        Class<?> cls;
+                        Object obj = null;
+                        String className = nvalue.get(1).stringValue();
+                        if (nvalue.get(1).isSymbol && !env.containsKey(className)) { // class's static method e.g. (. java.lang.Math floor 1.5)                            
+                            cls = Class.forName(className);
+                        } else { // object's method e.g. (. "abc" length)
+                            obj = eval(nvalue.get(1), env).value;
+                            cls = obj.getClass();
+                        }                        
+                        Class<?>[] parameterTypes = new Class<?>[nvalue.size() - 3];
+                        Vector<Object> parameters = new Vector<Object>();                    
+                        int last = nvalue.size() - 1;                        
+                        for (int i = 3; i <= last; i++) {
+                            Object param = eval(nvalue.get(i), env).value;
+                            parameters.add(param);
+                            Class<?> paramClass;
+                            if (param instanceof Integer) paramClass = Integer.TYPE;
+                            else if (param instanceof Double) paramClass = Double.TYPE;
+                            else if (param instanceof Boolean) paramClass = Boolean.TYPE;
+                            else paramClass = param.getClass();                            
+                            parameterTypes[i - 3] = paramClass;
+                        }
+                        String methodName = nvalue.get(2).stringValue();
+                        Method method = cls.getMethod(methodName, parameterTypes);
+                        return new node(method.invoke(obj, parameters.toArray()));
+                    } catch (Exception e) {                        
+                        e.printStackTrace();
+                        return new node();
+                    }}
+                case DOTGET: {
+                    // Java interoperability
+                    // (.get CLASS FIELD) ; get Java field
+                    try {                        
+                        Class<?> cls;
+                        Object obj = null;
+                        String className = nvalue.get(1).stringValue();
+                        if (nvalue.get(1).isSymbol && !env.containsKey(className)) { // class's static field e.g. (.get java.lang.Math PI)                            
+                            cls = Class.forName(className);
+                        } else { // object's method
+                            obj = eval(nvalue.get(1), env).value;
+                            cls = obj.getClass();
+                        }                        
+                        String fieldName = nvalue.get(2).stringValue();
+                        java.lang.reflect.Field field = cls.getField(fieldName);                        
+                        return new node(field.get(cls));
+                    } catch (Exception e) {                        
+                        e.printStackTrace();
+                        return new node();
+                    }}
+                case DOTSET: {
+                    // Java interoperability
+                    // (.set CLASS FIELD VALUE) ; set Java field
+                    try {                        
+                        Class<?> cls;
+                        Object obj = null;
+                        String className = nvalue.get(1).stringValue();
+                        if (nvalue.get(1).isSymbol && !env.containsKey(className)) { // class's static field e.g. (.get java.lang.Math PI)                            
+                            cls = Class.forName(className);
+                        } else { // object's method
+                            obj = eval(nvalue.get(1), env).value;
+                            cls = obj.getClass();
+                        }                        
+                        String fieldName = nvalue.get(2).stringValue();
+                        java.lang.reflect.Field field = cls.getField(fieldName);
+                        Object value = eval(nvalue.get(3), env).value;
+                        field.set(cls, value);
+                        return new node();                        
+                    } catch (Exception e) {                        
+                        e.printStackTrace();
+                        return new node();
+                    }}
                 case PR: // (pr X ..)
                     {                        
                         for (int i = 1; i < nvalue.size(); i++) {

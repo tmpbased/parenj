@@ -102,6 +102,46 @@ In a function, you cannot change outer environment.
 3 : java.lang.Integer
 ```
 
+### Java interoperability ###
+```
+> (. java.lang.Math random) ; class's static method
+  
+0.4780254852371699 : java.lang.Double
+> (. java.lang.Math floor 1.5)
+  
+1.0 : java.lang.Double
+> (. "abc" length) ; object's method
+  
+3 : java.lang.Integer
+> (. true toString)
+  
+true : java.lang.String
+> (set i 3)
+  
+ : null
+> (. i doubleValue)
+  
+3.0 : java.lang.Double
+> (.get java.lang.Math PI) ; get field
+  
+3.141592653589793 : java.lang.Double
+> (.get parenj testField)
+  
+ : null
+> (.set parenj testField 1) ; set field
+  
+ : null
+> (.get parenj testField)
+  
+1 : java.lang.Integer
+> (.set parenj testField "abc")
+  
+ : null
+> (.get parenj testField)
+  
+abc : java.lang.String
+```
+
 ### [Project Euler Problem 1](http://projecteuler.net/problem=1) ###
 ```
 (set s 0)
