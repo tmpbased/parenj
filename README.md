@@ -7,7 +7,7 @@ Paren is a dialect of Lisp. It is designed to be an embedded language.
 ## Compile ##
 ```
 cd src
-javac parenj.java
+javac paren.java parenj.java
 ```
 
 ## Run ##
