@@ -29,13 +29,13 @@ Functions:
  quote rand range read-string set sqrt strcat string strlen type
  when while ||
 Etc.:
- (list) [string] ; end-of-line comment
+ (list) "string" ; end-of-line comment
 ```
 
 ## Examples ##
 ### Hello, World! ###
 ```
-(prn [Hello, World!])
+(prn "Hello, World!")
 ```
 
 ### Function ###
@@ -160,13 +160,8 @@ In a function, you cannot change outer environment.
 ### [99 Bottles of Beer](http://en.wikipedia.org/wiki/99_Bottles_of_Beer) ###
 ```
 (for i 99 1 -1
-  (pr i)
-  (pr [ bottles of beer on the wall, ])
-  (pr i)
-  (prn [ bottles of beer.])
-  (pr [Take one down and pass it around, ])
-  (pr (dec i))
-  (prn [ bottle of beer on the wall.]))
+  (prn i "bottles of beer on the wall," i "bottles of beer.")
+  (prn "Take one down and pass it around," (dec i) "bottle of beer on the wall."))
 ```
 
 ## License ##

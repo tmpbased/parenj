@@ -8,7 +8,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 public class parenj {
-    static final String VERSION = "1.0.2";
+    static final String VERSION = "1.1";
     static class node {
         boolean isSymbol;
         Object value;
@@ -72,7 +72,7 @@ public class parenj {
 
                 if (tok.charAt(0) == '\'') { // left-quoted string
                     ret.add(new node(tok.substring(1)));
-                } else if (tok.charAt(0) == '[') { // bracket-quoted string
+                } else if (tok.charAt(0) == '"') { // double-quoted string
                     ret.add(new node(tok.substring(1)));
                 } else if (tok.charAt(0) == '(') { // list
                     ret.add(new node(parse(tok.substring(1))));
@@ -85,18 +85,23 @@ public class parenj {
                 } else { // variable get
                     ret.add(new node(tok, true));
                 }
-            } else if (acc.length() == 0 && c == '[') { // beginning of string
-                int numBracket = 1;
-                acc += '[';
+            } else if (acc.length() == 0 && c == '"') { // beginning of string
+                acc += '"';
                 pos++;
                 while (true) {
-                    switch (s.charAt(pos)) {
-                    case '[': numBracket++; break;
-                    case ']': numBracket--; break;
+                    if (s.charAt(pos) == '"') break;
+                    if (pos < last && s.charAt(pos) == '\\') { // escape
+                        char next = s.charAt(pos+1);
+                        if (next == 'r') next = '\r';
+                        else if (next == 'n') next = '\n';
+                        else if (next == 't') next = '\t';
+                        acc += next;
+                        pos += 2;
                     }
-                    if (numBracket <= 0) break;
-                    acc += s.charAt(pos);
-                    pos++;
+                    else {
+                        acc += s.charAt(pos);
+                        pos++;
+                    }
                 }
             } else if (acc.length() == 0 && c == '(') { // beginning of list
                 int numBracket = 1;
