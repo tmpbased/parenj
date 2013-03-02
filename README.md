@@ -2,7 +2,7 @@
 
 (C) 2013 Kim, Taegyoon
 
-Paren is a dialect of Lisp. It is designed to be an embedded language.
+Paren is a dialect of Lisp. It is designed to be an embedded language. You can use Java in your Paren program.
 
 ## Compile ##
 ```
