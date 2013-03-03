@@ -1,3 +1,4 @@
+// (C) 2013 Kim, Taegyoon
 // Paren language core
 
 import java.io.BufferedReader;
@@ -9,7 +10,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.2";
+    static final String VERSION = "1.2.1";
     paren() {
         init();
     }
@@ -269,9 +270,9 @@ public class paren {
             }
         }
         else if (n.value instanceof Vector) { // function (FUNCTION ARGUMENT ..)
-            Vector<node> nvalue = n.vectorValue();                
-            if (nvalue.size() == 0) return new node();
-            node func = eval(nvalue.get(0), env);
+            Vector<node> nvector = n.vectorValue();                
+            if (nvector.size() == 0) return new node();
+            node func = eval(nvector.get(0), env);
             builtin found = builtin_map.get(func.value);
             if (found == null) {
                 Vector<node> f = (Vector<node>)func.value;
@@ -282,7 +283,7 @@ public class paren {
                     Hashtable<String, node> env2 = (Hashtable<String, node>) env.clone();
                     int len = arg_syms.size();
                     for (int i=0; i<len; i++) { // assign arguments
-                        env2.put((String)arg_syms.get(i).value, eval(((Vector<node>)n.value).get(i + 1), env2));
+                        env2.put((String)arg_syms.get(i).value, eval(nvector.get(i + 1), env2));
                     }
                     len = f.size();
                     for (int i=2; i<len-1; i++) { // body
@@ -299,96 +300,96 @@ public class paren {
                 switch(found) {
                 case PLUS: // (+ X ..)
                     {
-                        int len = ((Vector<node>)n.value).size();
+                        int len = nvector.size();
                         if (len <= 1) return new node(0);
-                        node first = eval(((Vector<node>)n.value).get(1), env);
+                        node first = eval(nvector.get(1), env);
                         if (first.value instanceof Integer) {
                             int acc = (Integer)first.value;
                             for (int i = 2; i < len; i++) {
-                                acc += eval(((Vector<node>)n.value).get(i), env).intValue();
+                                acc += eval(nvector.get(i), env).intValue();
                             }
                             return new node(acc);
                         }
                         else {
                             double acc = (Double)first.value;
                             for (int i = 2; i < len; i++) {
-                                acc += eval(((Vector<node>)n.value).get(i), env).doubleValue();
+                                acc += eval(nvector.get(i), env).doubleValue();
                             }
                             return new node(acc);
                         }
                     }
                 case MINUS: // (- X ..)
                     {
-                        int len = ((Vector<node>)n.value).size();
+                        int len = nvector.size();
                         if (len <= 1) return new node(0);
-                        node first = eval(((Vector<node>)n.value).get(1), env);
+                        node first = eval(nvector.get(1), env);
                         if (first.value instanceof Integer) {
                             int acc = (Integer)first.value;
                             for (int i = 2; i < len; i++) {
-                                acc -= eval(((Vector<node>)n.value).get(i), env).intValue();
+                                acc -= eval(nvector.get(i), env).intValue();
                             }
                             return new node(acc);
                         }
                         else {
                             double acc = (Double)first.value;
                             for (int i = 2; i < len; i++) {
-                                acc -= eval(((Vector<node>)n.value).get(i), env).doubleValue();
+                                acc -= eval(nvector.get(i), env).doubleValue();
                             }
                             return new node(acc);
                         }
                     }
                 case MUL: // (* X ..)
                 {
-                    int len = ((Vector<node>)n.value).size();
+                    int len = nvector.size();
                     if (len <= 1) return new node(1);
-                    node first = eval(((Vector<node>)n.value).get(1), env);
+                    node first = eval(nvector.get(1), env);
                     if (first.value instanceof Integer) {
                         int acc = (Integer)first.value;
                         for (int i = 2; i < len; i++) {
-                            acc *= eval(((Vector<node>)n.value).get(i), env).intValue();
+                            acc *= eval(nvector.get(i), env).intValue();
                         }
                         return new node(acc);
                     }
                     else {
                         double acc = (Double)first.value;
                         for (int i = 2; i < len; i++) {
-                            acc *= eval(((Vector<node>)n.value).get(i), env).doubleValue();
+                            acc *= eval(nvector.get(i), env).doubleValue();
                         }
                         return new node(acc);
                     }
                 }
                 case DIV: // (/ X ..)
                 {
-                    int len = ((Vector<node>)n.value).size();
+                    int len = nvector.size();
                     if (len <= 1) return new node(1);
-                    node first = eval(((Vector<node>)n.value).get(1), env);
+                    node first = eval(nvector.get(1), env);
                     if (first.value instanceof Integer) {
                         int acc = (Integer)first.value;
                         for (int i = 2; i < len; i++) {
-                            acc /= eval(((Vector<node>)n.value).get(i), env).intValue();
+                            acc /= eval(nvector.get(i), env).intValue();
                         }
                         return new node(acc);
                     }
                     else {
                         double acc = (Double)first.value;
                         for (int i = 2; i < len; i++) {
-                            acc /= eval(((Vector<node>)n.value).get(i), env).doubleValue();
+                            acc /= eval(nvector.get(i), env).doubleValue();
                         }
                         return new node(acc);
                     }
                 }
                 case CARET: { // (^ BASE EXPONENT)
                     return new node(Math.pow(
-                            eval(nvalue.get(1), env).doubleValue(),
-                            eval(nvalue.get(2), env).doubleValue()));}
+                            eval(nvector.get(1), env).doubleValue(),
+                            eval(nvector.get(2), env).doubleValue()));}
                 case PERCENT: { // (% DIVIDEND DIVISOR)
-                    return new node(eval(nvalue.get(1), env).intValue() % eval(nvalue.get(2), env).intValue());}
+                    return new node(eval(nvector.get(1), env).intValue() % eval(nvector.get(2), env).intValue());}
                 case SQRT: { // (sqrt X)
-                    return new node(Math.sqrt(eval(nvalue.get(1), env).doubleValue()));}
+                    return new node(Math.sqrt(eval(nvector.get(1), env).doubleValue()));}
                 case INC: { // (inc X)
-                    int len = nvalue.size();
+                    int len = nvector.size();
                     if (len <= 1) return new node(0);
-                    node first = eval(nvalue.get(1), env);
+                    node first = eval(nvector.get(1), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() + 1);
                     }
@@ -397,9 +398,9 @@ public class paren {
                     }
                 }
                 case DEC: { // (dec X)
-                    int len = nvalue.size();
+                    int len = nvector.size();
                     if (len <= 1) return new node(0);
-                    node first = eval(nvalue.get(1), env);
+                    node first = eval(nvector.get(1), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() - 1);
                     }
@@ -408,88 +409,88 @@ public class paren {
                     }
                 }
                 case PLUSPLUS: { // (++ X)
-                    int len = nvalue.size();
+                    int len = nvector.size();
                     if (len <= 1) return new node(0);
-                    node first = eval(nvalue.get(1), env);
+                    node first = eval(nvector.get(1), env);
                     if (first.value instanceof Integer) {
-                        String key = nvalue.get(1).stringValue();
+                        String key = nvector.get(1).stringValue();
                         int value = env.get(key).intValue();
                         env.put(key, new node(value + 1));
                         return new node();
                     }
                     else {
-                        String key = nvalue.get(1).stringValue();
+                        String key = nvector.get(1).stringValue();
                         double value = env.get(key).doubleValue();
                         env.put(key, new node(value + 1));
                         return new node();
                     }
                 }
                 case MINUSMINUS: { // (-- X)
-                    int len = nvalue.size();
+                    int len = nvector.size();
                     if (len <= 1) return new node(0);
-                    node first = eval(nvalue.get(1), env);
+                    node first = eval(nvector.get(1), env);
                     if (first.value instanceof Integer) {
-                        String key = nvalue.get(1).stringValue();
+                        String key = nvector.get(1).stringValue();
                         int value = env.get(key).intValue();
                         env.put(key, new node(value - 1));
                         return new node();
                     }
                     else {
-                        String key = nvalue.get(1).stringValue();
+                        String key = nvector.get(1).stringValue();
                         double value = env.get(key).doubleValue();
                         env.put(key, new node(value - 1.0));
                         return new node();
                     }
                     }
                 case FLOOR: { // (floor X)
-                    return new node(Math.floor(eval(nvalue.get(1), env).doubleValue()));}
+                    return new node(Math.floor(eval(nvector.get(1), env).doubleValue()));}
                 case CEIL: { // (ceil X)
-                    return new node(Math.ceil(eval(nvalue.get(1), env).doubleValue()));}
+                    return new node(Math.ceil(eval(nvector.get(1), env).doubleValue()));}
                 case LN: { // (ln X)
-                    return new node(Math.log(eval(nvalue.get(1), env).doubleValue()));}
+                    return new node(Math.log(eval(nvector.get(1), env).doubleValue()));}
                 case LOG10: { // (log10 X)
-                    return new node(Math.log10(eval(nvalue.get(1), env).doubleValue()));}
+                    return new node(Math.log10(eval(nvector.get(1), env).doubleValue()));}
                 case RAND: { // (rand)
                     return new node(Math.random());}
                 case SET: // (set SYMBOL VALUE)
                     {
-                        env.put(nvalue.get(1).stringValue(),
-                                eval(nvalue.get(2), env));
+                        env.put(nvector.get(1).stringValue(),
+                                eval(nvector.get(2), env));
                         return new node();
                     }
                 case EQEQ: { // (== X ..) short-circuit                    
-                    node first = eval(nvalue.get(1), env);
+                    node first = eval(nvector.get(1), env);
                     if (first.value instanceof Integer) {
                         int firstv = first.intValue();                        
-                        for (int i = 2; i < nvalue.size(); i++) {
-                            if (eval(nvalue.get(i), env).intValue() != firstv) {return new node(false);}
+                        for (int i = 2; i < nvector.size(); i++) {
+                            if (eval(nvector.get(i), env).intValue() != firstv) {return new node(false);}
                         }
                     }
                     else {
                         double firstv = first.doubleValue();                        
-                        for (int i = 2; i < nvalue.size(); i++) {
-                            if (eval(nvalue.get(i), env).doubleValue() != firstv) {return new node(false);}
+                        for (int i = 2; i < nvector.size(); i++) {
+                            if (eval(nvector.get(i), env).doubleValue() != firstv) {return new node(false);}
                         }
                     }
                     return new node(true);}
                 case NOTEQ: { // (!= X ..) short-circuit                    
-                    node first = eval(nvalue.get(1), env);
+                    node first = eval(nvector.get(1), env);
                     if (first.value instanceof Integer) {
                         int firstv = first.intValue();                        
-                        for (int i = 2; i < nvalue.size(); i++) {
-                            if (eval(nvalue.get(i), env).intValue() == firstv) {return new node(false);}
+                        for (int i = 2; i < nvector.size(); i++) {
+                            if (eval(nvector.get(i), env).intValue() == firstv) {return new node(false);}
                         }
                     }
                     else {
                         double firstv = first.doubleValue();                        
-                        for (int i = 2; i < nvalue.size(); i++) {
-                            if (eval(nvalue.get(i), env).doubleValue() == firstv) {return new node(false);}
+                        for (int i = 2; i < nvector.size(); i++) {
+                            if (eval(nvector.get(i), env).doubleValue() == firstv) {return new node(false);}
                         }
                     }
                     return new node(true);}
                 case LT: { // (< X Y)
-                    node first = eval(nvalue.get(1), env);
-                    node second = eval(nvalue.get(2), env);
+                    node first = eval(nvector.get(1), env);
+                    node second = eval(nvector.get(2), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() < second.intValue());
                     }
@@ -497,8 +498,8 @@ public class paren {
                         return new node(first.doubleValue() < second.doubleValue());
                     }}
                 case GT: { // (> X Y)
-                    node first = eval(nvalue.get(1), env);
-                    node second = eval(nvalue.get(2), env);
+                    node first = eval(nvector.get(1), env);
+                    node second = eval(nvector.get(2), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() > second.intValue());
                     }
@@ -506,8 +507,8 @@ public class paren {
                         return new node(first.doubleValue() > second.doubleValue());
                     }}
                 case LTE: { // (<= X Y)
-                    node first = eval(nvalue.get(1), env);
-                    node second = eval(nvalue.get(2), env);
+                    node first = eval(nvector.get(1), env);
+                    node second = eval(nvector.get(2), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() <= second.intValue());
                     }
@@ -515,8 +516,8 @@ public class paren {
                         return new node(first.doubleValue() <= second.doubleValue());
                     }}
                 case GTE: { // (>= X Y)
-                    node first = eval(nvalue.get(1), env);
-                    node second = eval(nvalue.get(2), env);
+                    node first = eval(nvector.get(1), env);
+                    node second = eval(nvector.get(2), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() >= second.intValue());
                     }
@@ -524,50 +525,50 @@ public class paren {
                         return new node(first.doubleValue() >= second.doubleValue());
                     }}
                 case ANDAND: { // (&& X ..) short-circuit
-                    for (int i = 1; i < nvalue.size(); i++) {
-                        if (!eval(nvalue.get(i), env).booleanValue()) {return new node(false);}
+                    for (int i = 1; i < nvector.size(); i++) {
+                        if (!eval(nvector.get(i), env).booleanValue()) {return new node(false);}
                     }
                     return new node(true);}
                 case OROR: { // (|| X ..) short-circuit
-                    for (int i = 1; i < nvalue.size(); i++) {
-                        if (eval(nvalue.get(i), env).booleanValue()) {return new node(true);}
+                    for (int i = 1; i < nvector.size(); i++) {
+                        if (eval(nvector.get(i), env).booleanValue()) {return new node(true);}
                     }
                     return new node(false);}
                 case NOT: { // (! X)
-                    return new node(!(eval(nvalue.get(1), env).booleanValue()));}
+                    return new node(!(eval(nvector.get(1), env).booleanValue()));}
                 case IF: { // (if CONDITION THEN_EXPR ELSE_EXPR)
-                    node cond = nvalue.get(1);
+                    node cond = nvector.get(1);
                     if (eval(cond, env).booleanValue()) {
-                        return eval(nvalue.get(2), env);
+                        return eval(nvector.get(2), env);
                     }
                     else {
-                        return eval(nvalue.get(3), env);
+                        return eval(nvector.get(3), env);
                     }}
                 case WHEN: { // (when CONDITION EXPR ..)
-                    node cond = nvalue.get(1);
+                    node cond = nvector.get(1);
                     if (eval(cond, env).booleanValue()) {
-                        int len = nvalue.size();
+                        int len = nvector.size();
                         for (int i = 2; i < len - 1; i++) {
-                            eval(nvalue.get(i), env);
+                            eval(nvector.get(i), env);
                         }
-                        return eval(nvalue.get(len - 1), env); // returns last EXPR
+                        return eval(nvector.get(len - 1), env); // returns last EXPR
                     }
                     return new node();}
                 case FOR: // (for SYMBOL START END STEP EXPR ..)
                     {
-                        node start = eval(nvalue.get(2), env);
-                        int len = nvalue.size();
+                        node start = eval(nvector.get(2), env);
+                        int len = nvector.size();
                         if (start.value instanceof Integer) {                            
-                            int last = eval(nvalue.get(3), env).intValue();
-                            int step = eval(nvalue.get(4), env).intValue();
-                            env.put(nvalue.get(1).stringValue(), start);
-                            String key = nvalue.get(1).stringValue();
+                            int last = eval(nvector.get(3), env).intValue();
+                            int step = eval(nvector.get(4), env).intValue();
+                            env.put(nvector.get(1).stringValue(), start);
+                            String key = nvector.get(1).stringValue();
                             int a = env.get(key).intValue();
                             if (step >= 0) {
                                 for (; a <= last; a += step) {
                                     env.put(key, new node(a));
                                     for (int i = 5; i < len; i++) {
-                                        eval(nvalue.get(i), env);
+                                        eval(nvector.get(i), env);
                                     }
                                 }
                             }
@@ -575,22 +576,22 @@ public class paren {
                                 for (; a >= last; a += step) {
                                     env.put(key, new node(a));
                                     for (int i = 5; i < len; i++) {
-                                        eval(nvalue.get(i), env);
+                                        eval(nvector.get(i), env);
                                     }
                                 }
                             }
                         }
                         else {
-                            double last = eval(nvalue.get(3), env).intValue();
-                            double step = eval(nvalue.get(4), env).intValue();
-                            env.put(nvalue.get(1).stringValue(), start);
-                            String key = nvalue.get(1).stringValue();
-                            double a = env.get(nvalue.get(1).stringValue()).intValue();
+                            double last = eval(nvector.get(3), env).intValue();
+                            double step = eval(nvector.get(4), env).intValue();
+                            env.put(nvector.get(1).stringValue(), start);
+                            String key = nvector.get(1).stringValue();
+                            double a = env.get(nvector.get(1).stringValue()).intValue();
                             if (step >= 0) {
                                 for (; a <= last; a += step) {
                                     env.put(key, new node(a));
                                     for (int i = 5; i < len; i++) {
-                                        eval(nvalue.get(i), env);
+                                        eval(nvector.get(i), env);
                                     }
                                 }
                             }
@@ -598,7 +599,7 @@ public class paren {
                                 for (; a >= last; a += step) {
                                     env.put(key, new node(a));
                                     for (int i = 5; i < len; i++) {
-                                        eval(nvalue.get(i), env);
+                                        eval(nvector.get(i), env);
                                     }
                                 }
                             }
@@ -606,66 +607,66 @@ public class paren {
                         return new node();
                     }
                 case WHILE: { // (while CONDITION EXPR ..)
-                    node cond = nvalue.get(1);
-                    int len = nvalue.size();
+                    node cond = nvector.get(1);
+                    int len = nvector.size();
                     while (eval(cond, env).booleanValue()) {
                         for (int i = 2; i < len; i++) {
-                            eval(nvalue.get(i), env);
+                            eval(nvector.get(i), env);
                         }
                     }
                     return new node(); }
                 case STRLEN: { // (strlen X)
-                    return new node(eval(nvalue.get(1), env).stringValue().length());}
+                    return new node(eval(nvector.get(1), env).stringValue().length());}
                 case STRCAT: { // (strcat X ..)
-                    int len = nvalue.size();
+                    int len = nvector.size();
                     if (len <= 1) return new node("");
-                    node first = eval(nvalue.get(1), env);
+                    node first = eval(nvector.get(1), env);
                     String acc = first.stringValue();
-                    for (int i = 2; i < nvalue.size(); i++) {
-                        acc += eval(nvalue.get(i), env).stringValue();
+                    for (int i = 2; i < nvector.size(); i++) {
+                        acc += eval(nvector.get(i), env).stringValue();
                     }
                     return new node(acc);}
                 case CHAR_AT: { // (char-at X POSITION)
-                    return new node((int) eval(nvalue.get(1), env).stringValue().charAt(eval(nvalue.get(2), env).intValue()));}
+                    return new node((int) eval(nvector.get(1), env).stringValue().charAt(eval(nvector.get(2), env).intValue()));}
                 case CHR: { // (chr X)                    
                     char[] temp = {0};
-                    temp[0] = (char) eval(nvalue.get(1), env).intValue();
+                    temp[0] = (char) eval(nvector.get(1), env).intValue();
                     return new node(new String(temp));}
                 case STRING: { // (string X)
-                    return new node(eval(nvalue.get(1), env).stringValue());}
+                    return new node(eval(nvector.get(1), env).stringValue());}
                 case DOUBLE: { // (double X)
-                    return new node(eval(nvalue.get(1), env).doubleValue());}
+                    return new node(eval(nvector.get(1), env).doubleValue());}
                 case INT: { // (int X)
-                    return new node(eval(nvalue.get(1), env).intValue());}
+                    return new node(eval(nvector.get(1), env).intValue());}
                 case READ_STRING: { // (read-string X)
-                    return new node(parse(eval(nvalue.get(1), env).stringValue()).get(0).value);}
+                    return new node(parse(eval(nvector.get(1), env).stringValue()).get(0).value);}
                 case TYPE: { // (type X)
-                    return new node(eval(nvalue.get(1), env).type());}
+                    return new node(eval(nvector.get(1), env).type());}
                 case EVAL: { // (eval X)
-                    return new node(eval(eval(nvalue.get(1), env), env).value);}
+                    return new node(eval(eval(nvector.get(1), env), env).value);}
                 case QUOTE: { // (quote X)
-                    return nvalue.get(1);}
+                    return nvector.get(1);}
                 case FN: { // (fn (ARGUMENT ..) BODY) => evaluates to self
-                    return new node(nvalue);}
+                    return new node(nvector);}
                 case LIST: { // (list X ..)
                     Vector<node> ret = new Vector<node>();
-                    for (int i = 1; i < nvalue.size(); i++) {
-                        ret.add(eval(nvalue.get(i), env));
+                    for (int i = 1; i < nvector.size(); i++) {
+                        ret.add(eval(nvector.get(i), env));
                     }
                     return new node(ret);}
                 case APPLY: { // (apply FUNC LIST)
                     Vector<node> expr = new Vector<node>();
-                    node f = eval(nvalue.get(1), env);
+                    node f = eval(nvector.get(1), env);
                     expr.add(f);
-                    Vector<node> lst = eval(nvalue.get(2), env).vectorValue();
+                    Vector<node> lst = eval(nvector.get(2), env).vectorValue();
                     for (int i = 0; i < lst.size(); i++) {
                         expr.add(lst.get(i));
                     }                    
                     return eval(new node(expr), env);
                 }
                 case MAP: { // (map FUNC LIST)
-                    node f = eval(nvalue.get(1), env);
-                    Vector<node> lst = eval(nvalue.get(2), env).vectorValue();
+                    node f = eval(nvector.get(1), env);
+                    Vector<node> lst = eval(nvector.get(2), env).vectorValue();
                     Vector<node> acc = new Vector<node>();
                     Vector<node> expr = new Vector<node>(); // (FUNC ITEM)                       
                     expr.add(f);
@@ -677,8 +678,8 @@ public class paren {
                     return new node(acc);
                 }
                 case FILTER: { // (filter FUNC LIST)
-                    node f = eval(nvalue.get(1), env);
-                    Vector<node> lst = eval(nvalue.get(2), env).vectorValue();
+                    node f = eval(nvector.get(1), env);
+                    Vector<node> lst = eval(nvector.get(2), env).vectorValue();
                     Vector<node> acc = new Vector<node>();
                     Vector<node> expr = new Vector<node>(); // (FUNC ITEM)                    
                     expr.add(f);
@@ -692,12 +693,12 @@ public class paren {
                     return new node(acc);
                 }
                 case RANGE: { // (range START END STEP)
-                    node start = eval(nvalue.get(1), env);                    
+                    node start = eval(nvector.get(1), env);                    
                     Vector<node> ret = new Vector<node>();
                     if (start.value instanceof Integer) {
-                        int a = eval(nvalue.get(1), env).intValue();
-                        int last = eval(nvalue.get(2), env).intValue();
-                        int step = eval(nvalue.get(3), env).intValue();                        
+                        int a = eval(nvector.get(1), env).intValue();
+                        int last = eval(nvector.get(2), env).intValue();
+                        int step = eval(nvector.get(3), env).intValue();                        
                         if (step >= 0) {
                             for (; a <= last; a += step) {
                                 ret.add(new node(a));}}
@@ -706,9 +707,9 @@ public class paren {
                                 ret.add(new node(a));}}
                     }
                     else {
-                        double a = eval(nvalue.get(1), env).doubleValue();
-                        double last = eval(nvalue.get(2), env).doubleValue();
-                        double step = eval(nvalue.get(3), env).doubleValue();                        
+                        double a = eval(nvector.get(1), env).doubleValue();
+                        double last = eval(nvector.get(2), env).doubleValue();
+                        double step = eval(nvector.get(3), env).doubleValue();                        
                         if (step >= 0) {
                             for (; a <= last; a += step) {
                                 ret.add(new node(a));}}
@@ -719,37 +720,37 @@ public class paren {
                     return new node(ret);
                 }
                 case NTH: { // (nth INDEX LIST)
-                    int i = eval(nvalue.get(1), env).intValue();
-                    Vector<node> lst = eval(nvalue.get(2), env).vectorValue();
+                    int i = eval(nvector.get(1), env).intValue();
+                    Vector<node> lst = eval(nvector.get(2), env).vectorValue();
                     return lst.get(i);}
                 case LENGTH: { // (length LIST)                    
-                    Vector<node> lst = eval(nvalue.get(1), env).vectorValue();
+                    Vector<node> lst = eval(nvector.get(1), env).vectorValue();
                     return new node(lst.size());}
                 case BEGIN: { // (begin X ..)                    
-                    int last = nvalue.size() - 1;
+                    int last = nvector.size() - 1;
                     if (last <= 0) return new node();
                     for (int i = 1; i < last; i++) {
-                        eval(nvalue.get(i), env);
+                        eval(nvector.get(i), env);
                     }
-                    return eval(nvalue.get(last), env);}
+                    return eval(nvector.get(last), env);}
                 case DOT: {
                     // Java interoperability
                     // (. CLASS METHOD ARGUMENT ..) ; Java method invocation
                     try {                        
                         Class<?> cls;
                         Object obj = null;
-                        String className = nvalue.get(1).stringValue();
-                        if (nvalue.get(1).isSymbol && !env.containsKey(className)) { // class's static method e.g. (. java.lang.Math floor 1.5)                            
+                        String className = nvector.get(1).stringValue();
+                        if (nvector.get(1).isSymbol && !env.containsKey(className)) { // class's static method e.g. (. java.lang.Math floor 1.5)                            
                             cls = Class.forName(className);
                         } else { // object's method e.g. (. "abc" length)
-                            obj = eval(nvalue.get(1), env).value;
+                            obj = eval(nvector.get(1), env).value;
                             cls = obj.getClass();
                         }                        
-                        Class<?>[] parameterTypes = new Class<?>[nvalue.size() - 3];
+                        Class<?>[] parameterTypes = new Class<?>[nvector.size() - 3];
                         Vector<Object> parameters = new Vector<Object>();                    
-                        int last = nvalue.size() - 1;                        
+                        int last = nvector.size() - 1;                        
                         for (int i = 3; i <= last; i++) {
-                            Object param = eval(nvalue.get(i), env).value;
+                            Object param = eval(nvector.get(i), env).value;
                             parameters.add(param);
                             Class<?> paramClass;
                             if (param instanceof Integer) paramClass = Integer.TYPE;
@@ -758,7 +759,7 @@ public class paren {
                             else paramClass = param.getClass();                            
                             parameterTypes[i - 3] = paramClass;
                         }
-                        String methodName = nvalue.get(2).stringValue();
+                        String methodName = nvector.get(2).stringValue();
                         Method method = cls.getMethod(methodName, parameterTypes);
                         return new node(method.invoke(obj, parameters.toArray()));
                     } catch (Exception e) {                        
@@ -771,14 +772,14 @@ public class paren {
                     try {                        
                         Class<?> cls;
                         Object obj = null;
-                        String className = nvalue.get(1).stringValue();
-                        if (nvalue.get(1).isSymbol && !env.containsKey(className)) { // class's static field e.g. (.get java.lang.Math PI)                            
+                        String className = nvector.get(1).stringValue();
+                        if (nvector.get(1).isSymbol && !env.containsKey(className)) { // class's static field e.g. (.get java.lang.Math PI)                            
                             cls = Class.forName(className);
                         } else { // object's method
-                            obj = eval(nvalue.get(1), env).value;
+                            obj = eval(nvector.get(1), env).value;
                             cls = obj.getClass();
                         }                        
-                        String fieldName = nvalue.get(2).stringValue();
+                        String fieldName = nvector.get(2).stringValue();
                         java.lang.reflect.Field field = cls.getField(fieldName);                        
                         return new node(field.get(cls));
                     } catch (Exception e) {                        
@@ -791,16 +792,16 @@ public class paren {
                     try {                        
                         Class<?> cls;
                         Object obj = null;
-                        String className = nvalue.get(1).stringValue();
-                        if (nvalue.get(1).isSymbol && !env.containsKey(className)) { // class's static field e.g. (.get java.lang.Math PI)                            
+                        String className = nvector.get(1).stringValue();
+                        if (nvector.get(1).isSymbol && !env.containsKey(className)) { // class's static field e.g. (.get java.lang.Math PI)                            
                             cls = Class.forName(className);
                         } else { // object's method
-                            obj = eval(nvalue.get(1), env).value;
+                            obj = eval(nvector.get(1), env).value;
                             cls = obj.getClass();
                         }                        
-                        String fieldName = nvalue.get(2).stringValue();
+                        String fieldName = nvector.get(2).stringValue();
                         java.lang.reflect.Field field = cls.getField(fieldName);
-                        Object value = eval(nvalue.get(3), env).value;
+                        Object value = eval(nvector.get(3), env).value;
                         field.set(cls, value);
                         return new node();                        
                     } catch (Exception e) {                        
@@ -809,17 +810,17 @@ public class paren {
                     }}
                 case PR: // (pr X ..)
                     {                        
-                        for (int i = 1; i < nvalue.size(); i++) {
+                        for (int i = 1; i < nvector.size(); i++) {
                             if (i != 1) System.out.print(" ");
-                            System.out.print(eval(nvalue.get(i), env).stringValue());
+                            System.out.print(eval(nvector.get(i), env).stringValue());
                         }
                         return new node();
                     }
                 case PRN: // (prn X ..)
                     {
-                        for (int i = 1; i < nvalue.size(); i++) {
+                        for (int i = 1; i < nvector.size(); i++) {
                             if (i != 1) System.out.print(" ");
-                            System.out.print(eval(nvalue.get(i), env).stringValue());
+                            System.out.print(eval(nvector.get(i), env).stringValue());
                         }
                         System.out.println();
                         return new node();

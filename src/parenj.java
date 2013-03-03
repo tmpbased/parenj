@@ -1,5 +1,5 @@
-//(C) 2013 Kim, Taegyoon
-//Parenj: The Paren Programming Language written in Java
+// (C) 2013 Kim, Taegyoon
+// Parenj: The Paren Programming Language written in Java
 
 public class parenj {
     public static Object testField;
