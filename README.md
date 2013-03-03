@@ -39,6 +39,9 @@ Etc.:
 ```
 
 ### Function ###
+
+In a function, [dynamic scoping](http://en.wikipedia.org/wiki/Dynamic_scoping#Dynamic_scoping) is used.
+
 ```
 > ((fn (x y) (+ x y)) 1 2)
 
@@ -89,8 +92,6 @@ true : java.lang.Boolean
 5 120
  : null
 ```
-
-In a function, you cannot change outer environment.
 
 ### List ###
 ```
