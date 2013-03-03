@@ -148,7 +148,7 @@ abc : java.lang.String
 ```
 
 ### Java interoperability (from Java) ###
-### player.java ####
+#### player.java ####
 ```
 public class player {
     private int life;
@@ -161,7 +161,7 @@ public class player {
 }
 ```
 
-### parenjTest.java ###
+#### parenjTest.java ####
 ```
 public class parenjTest {
     public static Object testField;
