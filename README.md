@@ -32,6 +32,10 @@ Etc.:
  (list) "string" ; end-of-line comment
 ```
 
+## Files ##
+* paren.java: Paren language library
+* parenj.java: Paren REPL executable
+
 ## Examples ##
 ### Hello, World! ###
 ```
@@ -103,7 +107,7 @@ true : java.lang.Boolean
 3 : java.lang.Integer
 ```
 
-### Java interoperability ###
+### Java interoperability (from Paren) ###
 ```
 > (. java.lang.Math random) ; class's static method
   
@@ -141,6 +145,44 @@ true : java.lang.String
 > (.get parenj testField)
   
 abc : java.lang.String
+```
+
+### Java interoperability (from Java) ###
+### player.java ####
+```
+public class player {
+    private int life;
+    public int getLife() {
+        return life;
+    }
+    public void setLife(int life) {
+        this.life = life;
+    }
+}
+```
+
+### parenjTest.java ###
+```
+public class parenjTest {
+    public static Object testField;
+    public static void main(String[] args) {
+        paren p = new paren();
+        player pl = new player();
+        
+        // Method 1: using class's field
+        testField = pl;
+        p.eval_string("(set pl (.get parenjTest testField))");
+        p.eval_string("(. pl setLife 100)");
+        System.out.println(p.eval_string("(. pl getLife)").intValue());
+        
+        // Method 2: not using class's field, set variable to Java's local variable
+        p.global_env.put("pl2", new paren.node(pl));
+        p.eval_string("(. pl2 setLife 200)");
+        System.out.println(p.eval_string("(. pl2 getLife)").intValue());
+        p.global_env.remove("p12"); // remove variable
+    }
+}
+
 ```
 
 ### [Project Euler Problem 1](http://projecteuler.net/problem=1) ###
