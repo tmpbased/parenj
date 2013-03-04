@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.2.3";
+    static final String VERSION = "1.2.4";
     paren() {
         init();
     }
@@ -183,6 +183,7 @@ public class paren {
         global_env.put("false", new node(false));
         global_env.put("E", new node(2.71828182845904523536));
         global_env.put("PI", new node(3.14159265358979323846));
+        global_env.put("null", new node());
 
         builtin_map.put("+", builtin.PLUS);
         builtin_map.put("-", builtin.MINUS);
