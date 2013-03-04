@@ -145,6 +145,9 @@ true : java.lang.String
 > (.get parenj testField)
   
 abc : java.lang.String
+> (. (new java.math.BigInteger "2") pow 100) ;; 2 ^ 100
+  
+1267650600228229401496703205376 : java.math.BigInteger
 ```
 
 ### Java interoperability (from Java) ###

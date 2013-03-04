@@ -3,6 +3,7 @@
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.TreeSet;
@@ -10,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.2.2";
+    static final String VERSION = "1.2.3";
     paren() {
         init();
     }
@@ -135,7 +136,7 @@ public class paren {
         IF, WHEN, FOR, WHILE,
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
-        EVAL, QUOTE, FN, LIST, APPLY, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET,
+        EVAL, QUOTE, FN, LIST, APPLY, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET, NEW,
         PR, PRN, EXIT
     }
     
@@ -235,6 +236,7 @@ public class paren {
         builtin_map.put(".", builtin.DOT);
         builtin_map.put(".get", builtin.DOTGET);
         builtin_map.put(".set", builtin.DOTSET);
+        builtin_map.put("new", builtin.NEW);
         builtin_map.put("set", builtin.SET);
         builtin_map.put("pr", builtin.PR);
         builtin_map.put("prn", builtin.PRN);
@@ -816,6 +818,37 @@ public class paren {
                         Object value = eval(nvector.get(3)).value;
                         field.set(cls, value);
                         return new node();                        
+                    } catch (Exception e) {                        
+                        e.printStackTrace();
+                        return new node();
+                    }}
+                case NEW: {
+                    // Java interoperability
+                    // (new CLASS ARG ..) ; create new Java object
+                    try {                        
+                        Class<?> cls;                        
+                        String className = nvector.get(1).stringValue();
+                        if (nvector.get(1).isSymbol && !global_env.containsKey(className)) {                            
+                            cls = Class.forName(className);
+                        } else {
+                            String className2 = eval(nvector.get(1)).stringValue();
+                            cls = Class.forName(className2);
+                        }                        
+                        Class<?>[] parameterTypes = new Class<?>[nvector.size() - 2];
+                        Vector<Object> parameters = new Vector<Object>();                    
+                        int last = nvector.size() - 1;                        
+                        for (int i = 2; i <= last; i++) {
+                            Object param = eval(nvector.get(i)).value;
+                            parameters.add(param);
+                            Class<?> paramClass;
+                            if (param instanceof Integer) paramClass = Integer.TYPE;
+                            else if (param instanceof Double) paramClass = Double.TYPE;
+                            else if (param instanceof Boolean) paramClass = Boolean.TYPE;
+                            else paramClass = param.getClass();                            
+                            parameterTypes[i - 2] = paramClass;
+                        }
+                        Constructor<?> ctor = cls.getConstructor(parameterTypes);
+                        return new node(ctor.newInstance(parameters.toArray()));
                     } catch (Exception e) {                        
                         e.printStackTrace();
                         return new node();
