@@ -18,17 +18,17 @@ java parenj
 
 ## Reference ##
 ```
-Parenj 1.2.4 (C) 2013 Kim, Taegyoon
+Parenj 1.2.5 (C) 2013 Kim, Taegyoon
 Press Enter key twice to evaluate.
 Predefined Symbols:
  E PI false null true
 Functions:
  ! != % && * + ++ - -- .
- .get .set / < <= == > >= ^ apply
- begin ceil char-at chr dec double eval exit filter floor
- fn for if inc int length list ln log10 map
- new nth pr prn quote rand range read-string set sqrt
- strcat string strlen type when while ||
+ .get .set / < <= = == > >= ^
+ apply begin ceil char-at chr dec double eval exit filter
+ floor fn for if inc int length list ln log10
+ map new nth pr prn quote rand range read-string set
+ sqrt strcat string strlen type when while ||
 Etc.:
  (list) [string] ; end-of-line comment
 ```
@@ -81,6 +81,9 @@ true : java.lang.Boolean
 > (filter even? (list 1 2 3 4 5))
   
 [2, 4] : java.util.Vector
+> (= "abc" "abc") ; Object.equals()
+  
+true : java.lang.Boolean
 ```
 
 #### Recursion ####
