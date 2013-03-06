@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.2.4";
+    static final String VERSION = "1.2.5";
     paren() {
         init();
     }
@@ -132,7 +132,7 @@ public class paren {
     
     enum builtin {
         PLUS, MINUS, MUL, DIV, CARET, PERCENT, SQRT, INC, DEC, PLUSPLUS, MINUSMINUS, FLOOR, CEIL, LN, LOG10, E, PI, RAND,
-        EQEQ, NOTEQ, LT, GT, LTE, GTE, ANDAND, OROR, NOT,
+        EQ, EQEQ, NOTEQ, LT, GT, LTE, GTE, ANDAND, OROR, NOT,
         IF, WHEN, FOR, WHILE,
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
@@ -201,6 +201,7 @@ public class paren {
         builtin_map.put("ln", builtin.LN);
         builtin_map.put("log10", builtin.LOG10);
         builtin_map.put("rand", builtin.RAND);
+        builtin_map.put("=", builtin.EQ);
         builtin_map.put("==", builtin.EQEQ);
         builtin_map.put("!=", builtin.NOTEQ);
         builtin_map.put("<", builtin.LT);
@@ -473,6 +474,13 @@ public class paren {
                                 eval(nvector.get(2)));
                         return new node();
                     }
+                case EQ: { // (= X ..) short-circuit, Object.equals()                    
+                    node first = eval(nvector.get(1));
+                    Object firstv = first.value;                        
+                    for (int i = 2; i < nvector.size(); i++) {
+                        if (!eval(nvector.get(i)).value.equals(firstv)) {return new node(false);}
+                    }
+                    return new node(true);}                    
                 case EQEQ: { // (== X ..) short-circuit                    
                     node first = eval(nvector.get(1));
                     if (first.value instanceof Integer) {
