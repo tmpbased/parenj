@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.2.5";
+    static final String VERSION = "1.3";
     paren() {
         init();
     }
@@ -250,7 +250,8 @@ public class paren {
         if (n.value == null ||
                 n.value instanceof Integer ||
                 n.value instanceof Double ||
-                n.value instanceof Boolean) {
+                n.value instanceof Boolean ||
+                n.value instanceof builtin) {
             return n;
         }
         else if (n.value instanceof String) {
@@ -277,7 +278,14 @@ public class paren {
             Vector<node> nvector = n.vectorValue();                
             if (nvector.size() == 0) return new node();
             node func = eval(nvector.get(0));
-            builtin found = builtin_map.get(func.value);
+            builtin found;
+            if (func.value instanceof builtin) {
+            	found = (builtin) func.value;
+            }
+            else {
+            	found = builtin_map.get(func.value);
+            	if (found != null) nvector.get(0).value = found; // elementary just-in-time compilation
+            }            
             if (found == null) {
                 Vector<node> f = (Vector<node>)func.value;
                 if (func.value instanceof Vector && f.size() >= 3 && f.get(0).value.equals("fn")) {
@@ -312,7 +320,7 @@ public class paren {
                     return new node();
                 }
             }
-            else { // built-in function
+            else { // built-in function            	
                 switch(found) {
                 case PLUS: // (+ X ..)
                     {
@@ -890,8 +898,7 @@ public class paren {
             } // end else
         }
         else {
-            System.err.println("Unknown type");
-            return new node();
+        	return n;
         }
     }
 
