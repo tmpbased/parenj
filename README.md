@@ -18,7 +18,7 @@ java parenj
 
 ## Reference ##
 ```
-Parenj 1.3 (C) 2013 Kim, Taegyoon
+Parenj 1.3.1 (C) 2013 Kim, Taegyoon
 Press Enter key twice to evaluate.
 Predefined Symbols:
  E PI false null true
@@ -89,9 +89,7 @@ true : java.lang.Boolean
 #### Recursion ####
 ```
 > (set factorial (fn (x) (if (<= x 1) x (* x (factorial (dec x))))))
-
- : null
-> (for i 1 5 1 (prn i (factorial i)))
+  (for i 1 5 1 (prn i (factorial i)))
 
 1 1
 2 2
@@ -138,15 +136,11 @@ true : java.lang.String
   
  : null
 > (.set parenj testField 1) ; set field
-  
- : null
-> (.get parenj testField)
+  (.get parenj testField)
   
 1 : java.lang.Integer
 > (.set parenj testField "abc")
-  
- : null
-> (.get parenj testField)
+  (.get parenj testField)
   
 abc : java.lang.String
 > (. (new java.math.BigInteger "2") pow 100) ;; 2 ^ 100
