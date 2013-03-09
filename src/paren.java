@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.3.1";
+    static final String VERSION = "1.3.2";
     paren() {
         init();
     }
@@ -275,14 +275,7 @@ public class paren {
     
     @SuppressWarnings("unchecked")
     node eval(node n) {        
-        if (n.value == null ||
-                n.value instanceof Integer ||
-                n.value instanceof Double ||
-                n.value instanceof Boolean ||
-                n.value instanceof builtin) {
-            return n;
-        }
-        else if (n.value instanceof String) {
+        if (n.value instanceof String) {
             if (!n.isSymbol)
                 return n;
             else {
