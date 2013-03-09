@@ -21,7 +21,7 @@ OPTIONS:
 
 ## Reference ##
 ```
-Parenj 1.3.2 (C) 2013 Kim, Taegyoon
+Parenj 1.3.3 (C) 2013 Kim, Taegyoon
 Press Enter key twice to evaluate.
 Predefined Symbols:
  E PI false null true
