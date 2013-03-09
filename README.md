@@ -244,6 +244,8 @@ public class parenjTest {
 ```
 => 906609
 
+[More solutions of Project Euler in Paren](https://bitbucket.org/ktg/euler-paren)
+
 ### [99 Bottles of Beer](http://en.wikipedia.org/wiki/99_Bottles_of_Beer) ###
 ```
 (for i 99 1 -1
