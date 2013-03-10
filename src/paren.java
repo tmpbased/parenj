@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.3.3";
+    static final String VERSION = "1.3.4";
     paren() {
         init();
     }
@@ -617,9 +617,10 @@ public class paren {
                             String key = nvector.get(1).stringValue();
                             int a = start.intValue();
                             node na = new node();
+                            global_env.put(key, na);
                             if (step >= 0) {
                                 for (; a <= last; a += step) {
-                                    na.value = a; global_env.put(key, na);
+                                    na.value = a;
                                     for (int i = 5; i < len; i++) {
                                         eval(nvector.get(i));
                                     }
@@ -627,7 +628,7 @@ public class paren {
                             }
                             else {
                                 for (; a >= last; a += step) {
-                                    na.value = a; global_env.put(key, na);
+                                    na.value = a;
                                     for (int i = 5; i < len; i++) {
                                         eval(nvector.get(i));
                                     }
@@ -641,9 +642,10 @@ public class paren {
                             String key = nvector.get(1).stringValue();
                             double a = start.doubleValue();
                             node na = new node();
+                            global_env.put(key, na);
                             if (step >= 0) {
                                 for (; a <= last; a += step) {
-                                    na.value = a; global_env.put(key, na);
+                                    na.value = a;
                                     for (int i = 5; i < len; i++) {
                                         eval(nvector.get(i));
                                     }
@@ -651,7 +653,7 @@ public class paren {
                             }
                             else {
                                 for (; a >= last; a += step) {
-                                    na.value = a; global_env.put(key, na);
+                                    na.value = a;
                                     for (int i = 5; i < len; i++) {
                                         eval(nvector.get(i));
                                     }
