@@ -253,6 +253,10 @@ public class parenjTest {
   (prn "Take one down and pass it around," (dec i) "bottle of beer on the wall."))
 ```
 
+## Alternative Implementations ##
+* [Paren](https://bitbucket.org/ktg/paren) (Paren running natively)
+* [Parenj](https://bitbucket.org/ktg/parenj) (Paren running on the Java Virtual Machine)
+
 ## License ##
 
    Copyright 2013 Kim, Taegyoon
