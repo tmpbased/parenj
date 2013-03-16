@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.3.4";
+    static final String VERSION = "1.3.5";
     paren() {
         init();
     }
@@ -165,7 +165,7 @@ public class paren {
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
         EVAL, QUOTE, FN, LIST, APPLY, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET, NEW,
-        PR, PRN, EXIT
+        PR, PRN, EXIT, SYSTEM
     }
     
     Hashtable<String, builtin> builtin_map = new Hashtable<String, builtin>();
@@ -271,6 +271,7 @@ public class paren {
         builtin_map.put("pr", builtin.PR);
         builtin_map.put("prn", builtin.PRN);
         builtin_map.put("exit", builtin.EXIT);
+        builtin_map.put("system", builtin.SYSTEM);
     }
     
     @SuppressWarnings("unchecked")
@@ -912,10 +913,27 @@ public class paren {
                         System.out.println();
                         return new node();
                     }
-                case EXIT: {
+                case EXIT: { // (exit X)
                     System.out.println();
-                    System.exit(0);
+                    System.exit(eval(nvector.get(1)).intValue());
                     return new node(); }
+                case SYSTEM: { // (system "notepad" "a.txt") ; run external program
+                	Vector<String> args = new Vector<String>();
+                	for (int i = 1; i < nvector.size(); i++) {
+                		args.add(eval(nvector.get(i)).stringValue());
+                	}
+                    ProcessBuilder pb = new ProcessBuilder(args);
+                    pb.inheritIO();
+                    Process ps = null;
+                    try {
+						ps = pb.start();
+						ps.waitFor();
+						return new node(ps.exitValue());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+                    return new node(); 
+                    }                
                 default: {
                     System.err.println("Not implemented function: [" + func.value.toString() + "]");
                     return new node();}
