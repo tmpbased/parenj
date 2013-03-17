@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.3.5";
+    static final String VERSION = "1.3.6";
     paren() {
         init();
     }
@@ -60,84 +60,88 @@ public class paren {
         }
     }
     
-    public static Vector<String> tokenize(String s) {        
-        Vector<String> ret = new Vector<String>();
-        String acc = ""; // accumulator        
-        int last = s.length() - 1;
-        for (int pos=0; pos <= last; pos++) {
-            char c = s.charAt(pos);
-            if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
-                if (acc.length() > 0) {ret.add(acc); acc = "";}
-            }
-            else if (c == ';') { // end-of-line comment
-                if (acc.length() > 0) {ret.add(acc); acc = "";}
-                do pos++; while (pos <= last && s.charAt(pos) != '\n');
-            }
-            else if (c == '"') { // beginning of string
-                if (acc.length() > 0) {ret.add(acc); acc = "";}
-                acc += '"';
-                pos++;
-                while (true) {
-                    if (s.charAt(pos) == '"') break;
-                    if (pos < last && s.charAt(pos) == '\\') { // escape
-                        char next = s.charAt(pos+1);
-                        if (next == 'r') next = '\r';
-                        else if (next == 'n') next = '\n';
-                        else if (next == 't') next = '\t';
-                        acc += next;
-                        pos += 2;
-                    }
-                    else {
-                        acc += s.charAt(pos);
-                        pos++;
-                    }
+    private static class tokenizer {
+        private Vector<String> ret = new Vector<String>();
+        private String acc = ""; // accumulator
+        private String s;
+        
+        public tokenizer(String s) {
+            this.s = s;
+        }
+        
+        private void emit() {
+            if (acc.length() > 0) {ret.add(acc); acc = "";}
+        }
+        
+        public Vector<String> tokenize() {
+            int last = s.length() - 1;
+            for (int pos=0; pos <= last; pos++) {
+                char c = s.charAt(pos);
+                if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+                    emit();
                 }
-                ret.add(acc);
-                acc = "";
+                else if (c == ';') { // end-of-line comment
+                    emit();
+                    do pos++; while (pos <= last && s.charAt(pos) != '\n');
+                }
+                else if (c == '"') { // beginning of string
+                    emit();
+                    acc += '"';
+                    pos++;
+                    while (true) {
+                        if (s.charAt(pos) == '"') break;
+                        if (pos < last && s.charAt(pos) == '\\') { // escape
+                            char next = s.charAt(pos+1);
+                            if (next == 'r') next = '\r';
+                            else if (next == 'n') next = '\n';
+                            else if (next == 't') next = '\t';
+                            acc += next;
+                            pos += 2;
+                        }
+                        else {
+                            acc += s.charAt(pos);
+                            pos++;
+                        }
+                    }
+                    emit();
+                }
+                else if (c == '(' || c == ')') {
+                    emit();
+                    acc += c;
+                    emit();
+                }
+                else {
+                    acc += c;
+                }
             }
-            else if (c == '(') {
-                if (acc.length() > 0) {ret.add(acc); acc = "";}
-                acc += c;
-                ret.add(acc);
-                acc = "";
-            }
-            else if (c == ')') {
-                if (acc.length() > 0) {ret.add(acc); acc = "";}
-                acc += c;
-                ret.add(acc);
-                acc = "";
-            }            
-            else {
-                acc += c;
-            }
+            emit();
+            return ret;            
         }
-        if (acc.length() > 0) {
-            ret.add(acc); acc = "";
-        }
-        return ret;        
+    }
+    
+    public static Vector<String> tokenize(String s) {
+        return new tokenizer(s).tokenize();
     }
     
     private static class parser {        
         private int pos = 0;
-        private Vector<String> s;
-        public parser(Vector<String> s) {
-            this.s = s;
+        private Vector<String> tokens;
+        public parser(Vector<String> tokens) {
+            this.tokens = tokens;
         }
         public Vector<node> parse() {
             Vector<node> ret = new Vector<node>();
-            int last = s.size() - 1;
+            int last = tokens.size() - 1;
             for (;pos <= last; pos++) {
-                String tok = s.get(pos);
+                String tok = tokens.get(pos);
                 if (tok.charAt(0) == '"') { // double-quoted string
                     ret.add(new node(tok.substring(1)));
                 }
                 else if (tok.equals("(")) { // list
                     pos++;
                     ret.add(new node(parse()));
-                    pos--;
                 }
                 else if (tok.equals(")")) { // end of list
-                    pos++;
                     break;
                 }
                 else if (Character.isDigit(tok.charAt(0)) || tok.charAt(0) == '-' && tok.length() >= 2 && Character.isDigit(tok.charAt(1))) { // number
@@ -146,7 +150,8 @@ public class paren {
                     } else {
                         ret.add(new node(Integer.parseInt(tok)));
                     }
-                } else { // symbol
+                }
+                else { // symbol
                     ret.add(new node(tok, true));
                 }
             }
