@@ -47,7 +47,7 @@ Etc.:
 
 ### Function ###
 
-In a function, [dynamic scoping](http://en.wikipedia.org/wiki/Dynamic_scoping#Dynamic_scoping) is used.
+In a function, [lexical scoping](http://en.wikipedia.org/wiki/Lexical_scoping#Lexical_scoping) is used.
 
 ```
 > ((fn (x y) (+ x y)) 1 2)
@@ -59,9 +59,6 @@ In a function, [dynamic scoping](http://en.wikipedia.org/wiki/Dynamic_scoping#Dy
 > (set sum (fn (x y) (+ x y)))
 
  : null
-> sum
-
-[fn, [x, y], [+, x, y]] : java.util.Vector
 > (sum 1 2)
 
 3 : java.lang.Integer
@@ -86,6 +83,18 @@ true : java.lang.Boolean
 > (= "abc" "abc") ; Object.equals()
   
 true : java.lang.Boolean
+> (set x 1)
+  ((fn (x) (prn x) (set x 3) (prn x)) 4) ; lexical scoping
+  x    
+  
+4
+3
+1 : java.lang.Integer
+> (set adder (fn (amount) (fn (x) (+ x amount)))) ; lexical scoping
+  (set add3 (adder 3))
+  (add3 4)    
+  
+7 : java.lang.Integer
 ```
 
 #### Recursion ####
@@ -145,7 +154,7 @@ true : java.lang.String
   (.get parenj testField)
   
 abc : java.lang.String
-> (. (new java.math.BigInteger "2") pow 100) ;; 2 ^ 100
+> (. (new java.math.BigInteger "2") pow 100) ; 2 ^ 100
   
 1267650600228229401496703205376 : java.math.BigInteger
 ```
@@ -179,10 +188,10 @@ public class parenjTest {
         System.out.println(p.eval_string("(. pl getLife)").intValue());
         
         // Method 2: not using class's field, set variable to Java's local variable
-        p.global_env.put("pl2", new paren.node(pl));
+        p.global_env.env.put("pl2", new paren.node(pl));
         p.eval_string("(. pl2 setLife 200)");
         System.out.println(p.eval_string("(. pl2 getLife)").intValue());
-        p.global_env.remove("p12"); // remove variable
+        p.global_env.env.remove("p12"); // remove variable
     }
 }
 
