@@ -244,8 +244,7 @@ public class paren {
     
     void print_logo() {
         System.out.println(
-            "Parenj " + VERSION + " (C) 2013 Kim, Taegyoon\n" +
-            "Press Enter key twice to evaluate.");
+            "Parenj " + VERSION + " (C) 2013 Kim, Taegyoon");
         System.out.println(
             "Predefined Symbols:");
         print_symbols();
