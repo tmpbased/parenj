@@ -21,7 +21,6 @@ OPTIONS:
 
 ## Reference ##
 ```
-Press Enter key twice to evaluate.
 Predefined Symbols:
  E PI false null true
 Functions:
@@ -51,49 +50,36 @@ In a function, [lexical scoping](http://en.wikipedia.org/wiki/Lexical_scoping#Le
 
 ```
 > ((fn (x y) (+ x y)) 1 2)
-
 3 : java.lang.Integer
 > ((fn (x) (* x 2)) 3)
-
 6 : java.lang.Integer
 > (set sum (fn (x y) (+ x y)))
-
  : null
 > (sum 1 2)
-
 3 : java.lang.Integer
 > (set even? (fn (x) (== 0 (% x 2))))
-
  : null
 > (even? 3)
-
 false : java.lang.Boolean
 > (even? 4)
-
 true : java.lang.Boolean
 > (apply + (list 1 2 3))
-  
 6 : java.lang.Integer
 > (map sqrt (list 1 2 3 4))
-  
 [1.0, 1.4142135623730951, 1.7320508075688772, 2.0] : java.util.Vector
 > (filter even? (list 1 2 3 4 5))
-  
 [2, 4] : java.util.Vector
 > (= "abc" "abc") ; Object.equals()
-  
 true : java.lang.Boolean
 > (set x 1)
   ((fn (x) (prn x) (set x 3) (prn x)) 4) ; lexical scoping
   x    
-  
 4
 3
 1 : java.lang.Integer
 > (set adder (fn (amount) (fn (x) (+ x amount)))) ; lexical scoping
   (set add3 (adder 3))
   (add3 4)    
-  
 7 : java.lang.Integer
 ```
 
@@ -101,7 +87,6 @@ true : java.lang.Boolean
 ```
 > (set factorial (fn (x) (if (<= x 1) x (* x (factorial (dec x))))))
   (for i 1 5 1 (prn i (factorial i)))
-
 1 1
 2 2
 3 6
@@ -113,49 +98,36 @@ true : java.lang.Boolean
 ### List ###
 ```
 > (nth 1 (list 2 4 6))
-  
 4 : java.lang.Integer
 > (length (list 1 2 3))
-  
 3 : java.lang.Integer
 ```
 
 ### Java interoperability (from Paren) ###
 ```
 > (. java.lang.Math random) ; class's static method
-  
 0.4780254852371699 : java.lang.Double
 > (. java.lang.Math floor 1.5)
-  
 1.0 : java.lang.Double
 > (. "abc" length) ; object's method
-  
 3 : java.lang.Integer
 > (. true toString)
-  
 true : java.lang.String
 > (set i 3)
-  
  : null
 > (. i doubleValue)
-  
 3.0 : java.lang.Double
 > (.get java.lang.Math PI) ; get field
-  
 3.141592653589793 : java.lang.Double
 > (.get parenj testField)
-  
  : null
 > (.set parenj testField 1) ; set field
   (.get parenj testField)
-  
 1 : java.lang.Integer
 > (.set parenj testField "abc")
   (.get parenj testField)
-  
 abc : java.lang.String
 > (. (new java.math.BigInteger "2") pow 100) ; 2 ^ 100
-  
 1267650600228229401496703205376 : java.math.BigInteger
 ```
 

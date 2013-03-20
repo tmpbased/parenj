@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.4";
+    static final String VERSION = "1.4.1";
     paren() {
         init();
     }
@@ -101,6 +101,7 @@ public class paren {
         private Vector<String> ret = new Vector<String>();
         private String acc = ""; // accumulator
         private String s;
+        public int unclosed = 0;
         
         public tokenizer(String s) {
             this.s = s;
@@ -122,12 +123,13 @@ public class paren {
                     do pos++; while (pos <= last && s.charAt(pos) != '\n');
                 }
                 else if (c == '"') { // beginning of string
+                	unclosed++;
                     emit();
                     acc += '"';
                     pos++;
-                    while (true) {
-                        if (s.charAt(pos) == '"') break;
-                        if (pos < last && s.charAt(pos) == '\\') { // escape
+                    while (pos <= last) {
+                        if (s.charAt(pos) == '"') {unclosed--; break;}
+                        if (s.charAt(pos) == '\\') { // escape
                             char next = s.charAt(pos+1);
                             if (next == 'r') next = '\r';
                             else if (next == 'n') next = '\n';
@@ -142,7 +144,14 @@ public class paren {
                     }
                     emit();
                 }
-                else if (c == '(' || c == ')') {
+                else if (c == '(') {
+                	unclosed++;
+                    emit();
+                    acc += c;
+                    emit();
+                }
+                else if (c == ')') {
+                	unclosed--;
                     emit();
                     acc += c;
                     emit();
@@ -1002,7 +1011,9 @@ public class paren {
                     break;
                 }
                 code += "\n" + line;
-                if (line.length() == 0) {
+                tokenizer t = new tokenizer(code);
+                t.tokenize();
+                if (t.unclosed <= 0) { // no unmatched parenthesis nor quotation
                     eval_print(code);
                     code = "";
                 }
