@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.4.1";
+    static final String VERSION = "1.4.2";
     paren() {
         init();
     }
@@ -253,7 +253,7 @@ public class paren {
         print_functions();
         System.out.println(
             "Etc.:\n" +
-            " (list) [string] ; end-of-line comment");
+            " (list) \"string\" ; end-of-line comment");
     }    
 
     void init() {

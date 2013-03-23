@@ -31,7 +31,7 @@ Functions:
  map new nth pr prn quote rand range read-string set
  sqrt strcat string strlen system type when while ||
 Etc.:
- (list) [string] ; end-of-line comment
+ (list) "string" ; end-of-line comment
 ```
 
 ## Files ##
