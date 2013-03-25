@@ -27,9 +27,10 @@ Functions:
  ! != % && * + ++ - -- .
  .get .set / < <= = == > >= ^
  apply begin ceil char-at chr dec double eval exit filter
- floor fn for if inc int length list ln log10
- map new nth pr prn quote rand range read-string set
- sqrt strcat string strlen system type when while ||
+ floor fn fold for if inc int length list ln
+ log10 map new nth pr prn quote rand range read-string
+ set sqrt strcat string strlen system type when while ||
+
 Etc.:
  (list) "string" ; end-of-line comment
 ```
@@ -57,6 +58,8 @@ In a function, [lexical scoping](http://en.wikipedia.org/wiki/Lexical_scoping#Le
  : null
 > (sum 1 2)
 3 : java.lang.Integer
+> (fold sum (range 1 10 1))
+55 : java.lang.Integer
 > (set even? (fn (x) (== 0 (% x 2))))
  : null
 > (even? 3)

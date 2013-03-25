@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.4.2";
+    static final String VERSION = "1.4.3";
     paren() {
         init();
     }
@@ -215,7 +215,7 @@ public class paren {
         IF, WHEN, FOR, WHILE,
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
-        EVAL, QUOTE, FN, LIST, APPLY, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET, NEW,
+        EVAL, QUOTE, FN, LIST, APPLY, FOLD, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET, NEW,
         PR, PRN, EXIT, SYSTEM
     }
     
@@ -307,6 +307,7 @@ public class paren {
         builtin_map.put("fn", builtin.FN);
         builtin_map.put("list", builtin.LIST);
         builtin_map.put("apply", builtin.APPLY);
+        builtin_map.put("fold", builtin.FOLD);
         builtin_map.put("map", builtin.MAP);
         builtin_map.put("filter", builtin.FILTER);
         builtin_map.put("range", builtin.RANGE);
@@ -722,6 +723,21 @@ public class paren {
                         expr.add(lst.get(i));
                     }                    
                     return eval(new node(expr), env);
+                }
+                case FOLD: { // (fold FUNC LIST)
+                    node f = eval(nvector.get(1), env);
+                    Vector<node> lst = eval(nvector.get(2), env).vectorValue();
+                    node acc = eval(lst.get(0), env);
+                    Vector<node> expr = new Vector<node>(); // (FUNC ITEM)
+                    expr.add(f);
+                    expr.add(null); // first argument
+                    expr.add(null); // second argument
+                    for (int i = 1; i < lst.size(); i++) {
+                        expr.set(1, acc);
+                        expr.set(2, lst.get(i));
+                        acc = eval(new node(expr), env);
+                    }
+                    return acc;
                 }
                 case MAP: { // (map FUNC LIST)
                     node f = eval(nvector.get(1), env);
