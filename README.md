@@ -22,15 +22,13 @@ OPTIONS:
 ## Reference ##
 ```
 Predefined Symbols:
- E PI false null true
-Functions:
  ! != % && * + ++ - -- .
- .get .set / < <= = == > >= ^
- apply begin ceil char-at chr dec double eval exit filter
- floor fn fold for if inc int length list ln
- log10 map new nth pr prn quote rand range read-string
- set sqrt strcat string strlen system type when while ||
-
+ .get .set / < <= = == > >= E
+ PI ^ apply begin ceil char-at chr dec double eval
+ exit false filter floor fn fold for if inc int
+ length list ln log10 map new nth null pr prn
+ quote rand range read-string set sqrt strcat string strlen system
+ true type when while ||
 Etc.:
  (list) "string" ; end-of-line comment
 ```

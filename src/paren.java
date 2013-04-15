@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.4.3";
+    static final String VERSION = "1.4.4";
     paren() {
         init();
     }
@@ -219,7 +219,6 @@ public class paren {
         PR, PRN, EXIT, SYSTEM
     }
     
-    Hashtable<String, builtin> builtin_map = new Hashtable<String, builtin>();
     environment global_env = new environment(); // variables
     
     void print_symbols() {
@@ -232,25 +231,12 @@ public class paren {
         System.out.println();
     }
     
-    void print_functions() {
-        int i = 0;
-        for (String key : new TreeSet<String>(builtin_map.keySet())) {            
-            System.out.print(" " + key);
-            i++;
-            if (i % 10 == 0) System.out.println();
-        }
-        System.out.println();
-    }
-    
     void print_logo() {
         System.out.println(
             "Parenj " + VERSION + " (C) 2013 Kim, Taegyoon");
         System.out.println(
             "Predefined Symbols:");
         print_symbols();
-        System.out.println(
-            "Functions:");
-        print_functions();
         System.out.println(
             "Etc.:\n" +
             " (list) \"string\" ; end-of-line comment");
@@ -263,66 +249,66 @@ public class paren {
         global_env.env.put("PI", new node(3.14159265358979323846));
         global_env.env.put("null", new node());
 
-        builtin_map.put("+", builtin.PLUS);
-        builtin_map.put("-", builtin.MINUS);
-        builtin_map.put("*", builtin.MUL);
-        builtin_map.put("/", builtin.DIV);
-        builtin_map.put("^", builtin.CARET);
-        builtin_map.put("%", builtin.PERCENT);
-        builtin_map.put("sqrt", builtin.SQRT);
-        builtin_map.put("inc", builtin.INC);
-        builtin_map.put("dec", builtin.DEC);
-        builtin_map.put("++", builtin.PLUSPLUS);
-        builtin_map.put("--", builtin.MINUSMINUS);
-        builtin_map.put("floor", builtin.FLOOR);
-        builtin_map.put("ceil", builtin.CEIL);
-        builtin_map.put("ln", builtin.LN);
-        builtin_map.put("log10", builtin.LOG10);
-        builtin_map.put("rand", builtin.RAND);
-        builtin_map.put("=", builtin.EQ);
-        builtin_map.put("==", builtin.EQEQ);
-        builtin_map.put("!=", builtin.NOTEQ);
-        builtin_map.put("<", builtin.LT);
-        builtin_map.put(">", builtin.GT);
-        builtin_map.put("<=", builtin.LTE);
-        builtin_map.put(">=", builtin.GTE);
-        builtin_map.put("&&", builtin.ANDAND);
-        builtin_map.put("||", builtin.OROR);
-        builtin_map.put("!", builtin.NOT);
-        builtin_map.put("if", builtin.IF);
-        builtin_map.put("when", builtin.WHEN);
-        builtin_map.put("for", builtin.FOR);
-        builtin_map.put("while", builtin.WHILE);
-        builtin_map.put("strlen", builtin.STRLEN);
-        builtin_map.put("strcat", builtin.STRCAT);
-        builtin_map.put("char-at", builtin.CHAR_AT);
-        builtin_map.put("chr", builtin.CHR);
-        builtin_map.put("int", builtin.INT);
-        builtin_map.put("double", builtin.DOUBLE);
-        builtin_map.put("string", builtin.STRING);
-        builtin_map.put("read-string", builtin.READ_STRING);
-        builtin_map.put("type", builtin.TYPE);
-        builtin_map.put("eval", builtin.EVAL);
-        builtin_map.put("quote", builtin.QUOTE);
-        builtin_map.put("fn", builtin.FN);
-        builtin_map.put("list", builtin.LIST);
-        builtin_map.put("apply", builtin.APPLY);
-        builtin_map.put("fold", builtin.FOLD);
-        builtin_map.put("map", builtin.MAP);
-        builtin_map.put("filter", builtin.FILTER);
-        builtin_map.put("range", builtin.RANGE);
-        builtin_map.put("nth", builtin.NTH);
-        builtin_map.put("length", builtin.LENGTH);
-        builtin_map.put("begin", builtin.BEGIN);
-        builtin_map.put(".", builtin.DOT);
-        builtin_map.put(".get", builtin.DOTGET);
-        builtin_map.put(".set", builtin.DOTSET);
-        builtin_map.put("new", builtin.NEW);
-        builtin_map.put("set", builtin.SET);
-        builtin_map.put("pr", builtin.PR);
-        builtin_map.put("prn", builtin.PRN);
-        builtin_map.put("exit", builtin.EXIT);
-        builtin_map.put("system", builtin.SYSTEM);
+        global_env.env.put("+", new node(builtin.PLUS));
+        global_env.env.put("-", new node(builtin.MINUS));
+        global_env.env.put("*", new node(builtin.MUL));
+        global_env.env.put("/", new node(builtin.DIV));
+        global_env.env.put("^", new node(builtin.CARET));
+        global_env.env.put("%", new node(builtin.PERCENT));
+        global_env.env.put("sqrt", new node(builtin.SQRT));
+        global_env.env.put("inc", new node(builtin.INC));
+        global_env.env.put("dec", new node(builtin.DEC));
+        global_env.env.put("++", new node(builtin.PLUSPLUS));
+        global_env.env.put("--", new node(builtin.MINUSMINUS));
+        global_env.env.put("floor", new node(builtin.FLOOR));
+        global_env.env.put("ceil", new node(builtin.CEIL));
+        global_env.env.put("ln", new node(builtin.LN));
+        global_env.env.put("log10", new node(builtin.LOG10));
+        global_env.env.put("rand", new node(builtin.RAND));
+        global_env.env.put("=", new node(builtin.EQ));
+        global_env.env.put("==", new node(builtin.EQEQ));
+        global_env.env.put("!=", new node(builtin.NOTEQ));
+        global_env.env.put("<", new node(builtin.LT));
+        global_env.env.put(">", new node(builtin.GT));
+        global_env.env.put("<=", new node(builtin.LTE));
+        global_env.env.put(">=", new node(builtin.GTE));
+        global_env.env.put("&&", new node(builtin.ANDAND));
+        global_env.env.put("||", new node(builtin.OROR));
+        global_env.env.put("!", new node(builtin.NOT));
+        global_env.env.put("if", new node(builtin.IF));
+        global_env.env.put("when", new node(builtin.WHEN));
+        global_env.env.put("for", new node(builtin.FOR));
+        global_env.env.put("while", new node(builtin.WHILE));
+        global_env.env.put("strlen", new node(builtin.STRLEN));
+        global_env.env.put("strcat", new node(builtin.STRCAT));
+        global_env.env.put("char-at", new node(builtin.CHAR_AT));
+        global_env.env.put("chr", new node(builtin.CHR));
+        global_env.env.put("int", new node(builtin.INT));
+        global_env.env.put("double", new node(builtin.DOUBLE));
+        global_env.env.put("string", new node(builtin.STRING));
+        global_env.env.put("read-string", new node(builtin.READ_STRING));
+        global_env.env.put("type", new node(builtin.TYPE));
+        global_env.env.put("eval", new node(builtin.EVAL));
+        global_env.env.put("quote", new node(builtin.QUOTE));
+        global_env.env.put("fn", new node(builtin.FN));
+        global_env.env.put("list", new node(builtin.LIST));
+        global_env.env.put("apply", new node(builtin.APPLY));
+        global_env.env.put("fold", new node(builtin.FOLD));
+        global_env.env.put("map", new node(builtin.MAP));
+        global_env.env.put("filter", new node(builtin.FILTER));
+        global_env.env.put("range", new node(builtin.RANGE));
+        global_env.env.put("nth", new node(builtin.NTH));
+        global_env.env.put("length", new node(builtin.LENGTH));
+        global_env.env.put("begin", new node(builtin.BEGIN));
+        global_env.env.put(".", new node(builtin.DOT));
+        global_env.env.put(".get", new node(builtin.DOTGET));
+        global_env.env.put(".set", new node(builtin.DOTSET));
+        global_env.env.put("new", new node(builtin.NEW));
+        global_env.env.put("set", new node(builtin.SET));
+        global_env.env.put("pr", new node(builtin.PR));
+        global_env.env.put("prn", new node(builtin.PRN));
+        global_env.env.put("exit", new node(builtin.EXIT));
+        global_env.env.put("system", new node(builtin.SYSTEM));
     }
     
     node eval(node n, environment env) {
@@ -333,15 +319,8 @@ public class paren {
                 return found;
             }
             else {                
-                builtin foundBuiltin = builtin_map.get(sym.name);
-                if (foundBuiltin != null) { // built-in function
-                    n.value = foundBuiltin; // elementary just-in-time compilation
-                    return n;                    
-                }
-                else {
-                    System.err.println("Unknown variable: [" + sym.name + "]");
-                    return new node();
-                }                
+                System.err.println("Unknown variable: [" + sym.name + "]");
+                return new node();
             }
         }
         else if (n.value instanceof Vector) { // function (FUNCTION ARGUMENT ..)
@@ -616,7 +595,6 @@ public class paren {
                         if (start.value instanceof Integer) {                            
                             int last = eval(nvector.get(3), env).intValue();
                             int step = eval(nvector.get(4), env).intValue();
-                            env.env.put(nvector.get(1).stringValue(), start);
                             String key = nvector.get(1).stringValue();
                             int a = start.intValue();
                             node na = new node();
@@ -641,7 +619,6 @@ public class paren {
                         else {
                             double last = eval(nvector.get(3), env).doubleValue();
                             double step = eval(nvector.get(4), env).doubleValue();
-                            env.env.put(nvector.get(1).stringValue(), start);
                             String key = nvector.get(1).stringValue();
                             double a = start.doubleValue();
                             node na = new node();
