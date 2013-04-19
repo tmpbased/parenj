@@ -242,6 +242,7 @@ public class parenjTest {
 ## Alternative Implementations ##
 * [Paren](https://bitbucket.org/ktg/paren) (Paren running natively)
 * [Parenj](https://bitbucket.org/ktg/parenj) (Paren running on the Java Virtual Machine)
+* [Parenjs](https://bitbucket.org/ktg/parenjs) (Paren compiler targeting JavaScript)
 
 ## License ##
 
