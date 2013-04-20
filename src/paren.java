@@ -2,6 +2,8 @@
 // Paren language core
 //
 // # Changelog
+// Version 1.5.1: Fixed recursion
+//
 // Version 1.5
 //  Compile-time allocation of variables (No Hashtable lookup)
 //  Much faster (10x). Faster than Clojure
@@ -17,7 +19,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.5";
+    static final String VERSION = "1.5.1";
     paren() {
         init();
     }
@@ -62,10 +64,6 @@ public class paren {
         }
     }
     
-    static void set(node n, node v) {
-        n.value = v.value;
-    }
-    
     static class symbol {
         String name;
         symbol(String name) {this.name = name;}
@@ -76,8 +74,10 @@ public class paren {
     
     static class fn { // anonymous function
         Vector<node> def; // definition
-        fn(Vector<node> def) {
+        environment env;        
+        fn(Vector<node> def, environment env) {
             this.def = def;
+            this.env = env;
         }
         public String toString() {
             return "function";
@@ -380,24 +380,14 @@ public class paren {
                 case FN: {
                     // anonymous function. lexical scoping
                     // (fn (ARGUMENT ..) BODY ..)                    
-                    Vector<node> arg_syms = nvector.get(1).vectorValue();
-                    Vector<node> args = new Vector<node>();
                     environment local_env = new environment(env);
                     Vector<node> r = new Vector<node>();
                     r.add(func);
-                                        
-                    int len = arg_syms.size();
-                    for (int i=0; i<len; i++) { // assign arguments
-                        String k = arg_syms.get(i).stringValue();
-                        node n2 = new node();
-                        local_env.env.put(k, n2);
-                        args.add(n2);
+                    
+                    for (int i=1; i<nvector.size(); i++) {
+                        r.add(nvector.get(i));
                     }
-                    r.add(new node(args));
-                    for (int i=2; i<nvector.size(); i++) {
-                        r.add(compile(nvector.get(i), local_env));
-                    }
-                    return new node(new fn(r));                
+                    return new node(new fn(r, local_env));                
                 }
                 case QUOTE: {
                     Vector<node> r = new Vector<node>();
@@ -624,12 +614,10 @@ public class paren {
                     return new node(Math.log10(eval(nvector.get(1)).doubleValue()));}
                 case RAND: { // (rand)
                     return new node(Math.random());}
-                case SET: // (set SYMBOL VALUE)
-                    {
-                        set(nvector.get(1),
-                                eval(nvector.get(2)));
-                        return nvector.get(1);
-                    }
+                case SET: { // (set SYMBOL VALUE)
+                    node n2 = nvector.get(1); 
+                    n2.value = eval(nvector.get(2)).value; 
+                    return n2;}
                 case EQ: { // (= X ..) short-circuit, Object.equals()                    
                     node first = eval(nvector.get(1));
                     Object firstv = first.value;
@@ -824,8 +812,7 @@ public class paren {
                 case QUOTE: { // (quote X)
                     return nvector.get(1);}
                 case FN: { // (fn (ARGUMENT ..) BODY) => lexical closure
-                    fn n2 = new fn(nvector);
-                    return new node(n2);}                    
+                    return n;}                    
                 case LIST: { // (list X ..)
                     Vector<node> ret = new Vector<node>();
                     for (int i = 1; i < nvector.size(); i++) {
@@ -1080,17 +1067,18 @@ public class paren {
                     // anonymous function application. lexical scoping
                     // (fn (ARGUMENT ..) BODY ..)
                     fn f = (fn) func.value;
-                    Vector<node> arg_syms = f.def.get(1).vectorValue();
-                                                            
+                    Vector<node> arg_syms = f.def.get(1).vectorValue();                    
+                                        
                     int len = arg_syms.size();
                     for (int i=0; i<len; i++) { // assign arguments
-                        arg_syms.get(i).value = eval(nvector.get(i + 1)).value;
+                        String k = arg_syms.get(i).stringValue();
+                        f.env.env.put(k, eval(compile(nvector.get(i + 1), f.env)));
                     }
                     len = f.def.size();
                     for (int i=2; i<len-1; i++) { // body
-                        eval(f.def.get(i));
+                        eval(compile(f.def.get(i), f.env));
                     }
-                    node ret = eval(f.def.get(len-1));
+                    node ret = eval(compile(f.def.get(len-1), f.env));
                     return ret;
                 }
                 else {
