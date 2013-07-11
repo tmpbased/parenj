@@ -19,17 +19,23 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-    static final String VERSION = "1.5.1";
+	static final String VERSION = "1.5.2";
     paren() {
         init();
     }
     
-    static class node {
+    static class node implements Cloneable {
         Object value;
+        boolean isData;
         
         node() {}
         node(Object value) {
             this.value = value;
+        }
+        protected node clone() {
+        	node r = new node(this.value);
+        	r.isData = this.isData;
+        	return r;
         }
         int intValue() {
             return ((Number)value).intValue();
@@ -224,7 +230,7 @@ public class paren {
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
         EVAL, QUOTE, FN, LIST, APPLY, FOLD, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET, NEW,
-        PR, PRN, EXIT, SYSTEM
+        PR, PRN, EXIT, SYSTEM, CONS
     }
     
     environment global_env = new environment(); // variables. compile-time
@@ -317,13 +323,15 @@ public class paren {
         global_env.env.put("prn", new node(builtin.PRN));
         global_env.env.put("exit", new node(builtin.EXIT));
         global_env.env.put("system", new node(builtin.SYSTEM));
+        global_env.env.put("cons", new node(builtin.CONS));
     }
     
-    node compile(node n, environment env) {
+    node compile(node n, environment env) {    	
         if (n.value instanceof symbol) {
             symbol sym = (symbol) n.value;
             node found = env.get(sym.name);
             if (found != null) { // variable
+            	found.isData = true;
                 return found;
             }
             else {
@@ -333,6 +341,7 @@ public class paren {
             }
         }
         else if (n.value instanceof Vector) { // function (FUNCTION ARGUMENT ..)
+        	if (n.isData) return n;
             Vector<node> nvector = n.vectorValue();                
             if (nvector.size() == 0) return new node();
             node func = compile(nvector.get(0), env);
@@ -461,8 +470,9 @@ public class paren {
         }
     }    
     
-    node eval(node n) {
+    node eval(node n) {    	
         if (n.value instanceof Vector) { // function (FUNCTION ARGUMENT ..)
+        	if (n.isData) return n.clone();;
             Vector<node> nvector = n.vectorValue();                
             if (nvector.size() == 0) return new node();
             node func = eval(nvector.get(0));
@@ -1056,7 +1066,18 @@ public class paren {
                         e.printStackTrace();
                     }
                     return new node(); 
-                    }                
+                    }
+                case CONS: { // (cons x lst): Returns a new list where x is the first element and lst is the rest.
+                    //node x = new node(eval(nvector.get(1)).value);
+                    node x = eval(nvector.get(1));
+                    Vector<node> lst = eval(nvector.get(2)).vectorValue();
+                    Vector<node> r = new Vector<node>();
+                    r.add(x);
+                    for (node n2 : lst) {
+                    	r.add(n2);
+                    }
+                    return new node(r);
+                }                
                 default: {
                     System.err.println("Not implemented function: [" + func.value.toString() + "]");
                     return new node();}
@@ -1072,7 +1093,9 @@ public class paren {
                     int len = arg_syms.size();
                     for (int i=0; i<len; i++) { // assign arguments
                         String k = arg_syms.get(i).stringValue();
-                        f.env.env.put(k, eval(compile(nvector.get(i + 1), f.env)));
+                        node cn = compile(nvector.get(i + 1), f.env);                        
+                        node n2 = eval(cn);
+                        f.env.env.put(k, n2);
                     }
                     len = f.def.size();
                     for (int i=2; i<len-1; i++) { // body
@@ -1088,7 +1111,7 @@ public class paren {
             }
         }
         else {
-        	return n;
+        	return n.clone();
         }
     }
     

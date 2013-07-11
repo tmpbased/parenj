@@ -24,11 +24,11 @@ OPTIONS:
 Predefined Symbols:
  ! != % && * + ++ - -- .
  .get .set / < <= = == > >= E
- PI ^ apply begin ceil char-at chr dec double eval
- exit false filter floor fn fold for if inc int
- length list ln log10 map new nth null pr prn
- quote rand range read-string set sqrt strcat string strlen system
- true type when while ||
+ PI ^ apply begin ceil char-at chr cons dec double
+ eval exit false filter floor fn fold for if inc
+ int length list ln log10 map new nth null pr
+ prn quote rand range read-string set sqrt strcat string strlen
+ system true type when while ||
 Etc.:
  (list) "string" ; end-of-line comment
 ```
@@ -82,6 +82,8 @@ true : java.lang.Boolean
   (set add3 (adder 3))
   (add3 4)    
 7 : java.lang.Integer
+> (cons 1 (list 2 3))
+[1, 2, 3] : java.util.Vector
 ```
 
 #### Recursion ####
