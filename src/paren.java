@@ -6,7 +6,7 @@
 //
 // Version 1.5
 //  Compile-time allocation of variables (No Hashtable lookup)
-//  Much faster (10x). Faster than Clojure
+//  Much faster (10x).
 //  (eval): Evaluate in global environment
 
 import java.io.BufferedReader;
@@ -19,7 +19,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-	static final String VERSION = "1.5.2";
+	static final String VERSION = "1.5.3";
     paren() {
         init();
     }
@@ -27,6 +27,7 @@ public class paren {
     static class node implements Cloneable {
         Object value;
         boolean isData;
+        Class<?> clazz = null; // type hint
         
         node() {}
         node(Object value) {
@@ -35,6 +36,7 @@ public class paren {
         protected node clone() {
         	node r = new node(this.value);
         	r.isData = this.isData;
+        	r.clazz = this.clazz;
         	return r;
         }
         int intValue() {
@@ -42,6 +44,9 @@ public class paren {
         }
         double doubleValue() {
             return ((Number)value).doubleValue();
+        }
+        long longValue() {
+            return ((Number)value).longValue();
         }
         boolean booleanValue() {
             return (Boolean) value;
@@ -230,7 +235,7 @@ public class paren {
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
         EVAL, QUOTE, FN, LIST, APPLY, FOLD, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET, NEW,
-        PR, PRN, EXIT, SYSTEM, CONS
+        PR, PRN, EXIT, SYSTEM, CONS, LONG, NULLP, CAST
     }
     
     environment global_env = new environment(); // variables. compile-time
@@ -324,6 +329,9 @@ public class paren {
         global_env.env.put("exit", new node(builtin.EXIT));
         global_env.env.put("system", new node(builtin.SYSTEM));
         global_env.env.put("cons", new node(builtin.CONS));
+        global_env.env.put("long", new node(builtin.LONG));
+        global_env.env.put("null?", new node(builtin.NULLP));
+        global_env.env.put("cast", new node(builtin.CAST));
     }
     
     node compile(node n, environment env) {    	
@@ -813,6 +821,8 @@ public class paren {
                     return new node(eval(nvector.get(1)).doubleValue());}
                 case INT: { // (int X)
                     return new node(eval(nvector.get(1)).intValue());}
+                case LONG: { // (long X)
+                    return new node(eval(nvector.get(1)).longValue());}                
                 case READ_STRING: { // (read-string X)
                     return new node(parse(eval(nvector.get(1)).stringValue()).get(0).value);}
                 case TYPE: { // (type X)
@@ -940,13 +950,19 @@ public class paren {
                         Vector<Object> parameters = new Vector<Object>();                    
                         int last = nvector.size() - 1;                        
                         for (int i = 3; i <= last; i++) {
-                            Object param = eval(nvector.get(i)).value;
+                        	node a = eval(nvector.get(i));
+                            Object param = a.value;
                             parameters.add(param);
                             Class<?> paramClass;
-                            if (param instanceof Integer) paramClass = Integer.TYPE;
-                            else if (param instanceof Double) paramClass = Double.TYPE;
-                            else if (param instanceof Boolean) paramClass = Boolean.TYPE;
-                            else paramClass = param.getClass();                            
+                            if (a.clazz == null) {
+	                            if (param instanceof Integer) paramClass = Integer.TYPE;
+	                            else if (param instanceof Double) paramClass = Double.TYPE;
+	                            else if (param instanceof Long) paramClass = Long.TYPE;
+	                            else if (param instanceof Boolean) paramClass = Boolean.TYPE;
+	                            else paramClass = param.getClass();
+                            } else {
+                            	paramClass = a.clazz; // use hint
+                            }
                             parameterTypes[i - 3] = paramClass;
                         }
                         String methodName = nvector.get(2).stringValue();
@@ -1001,27 +1017,27 @@ public class paren {
                 case NEW: {
                     // Java interoperability
                     // (new CLASS ARG ..) ; create new Java object
-                    try {                        
-                        Class<?> cls;                        
+                    try {
                         String className = nvector.get(1).stringValue();
-                        if (nvector.get(1).value instanceof symbol) {
-                            cls = Class.forName(className);
-                        } else {
-                            String className2 = eval(nvector.get(1)).stringValue();
-                            cls = Class.forName(className2);
-                        }                        
+                        Class<?> cls = Class.forName(className);                      
                         Class<?>[] parameterTypes = new Class<?>[nvector.size() - 2];
                         Vector<Object> parameters = new Vector<Object>();                    
                         int last = nvector.size() - 1;                        
                         for (int i = 2; i <= last; i++) {
-                            Object param = eval(nvector.get(i)).value;
+                        	node a = eval(nvector.get(i));
+                            Object param = a.value;
                             parameters.add(param);
                             Class<?> paramClass;
-                            if (param instanceof Integer) paramClass = Integer.TYPE;
-                            else if (param instanceof Double) paramClass = Double.TYPE;
-                            else if (param instanceof Boolean) paramClass = Boolean.TYPE;
-                            else paramClass = param.getClass();                            
-                            parameterTypes[i - 2] = paramClass;
+                            if (a.clazz == null) {
+	                            if (param instanceof Integer) paramClass = Integer.TYPE;
+	                            else if (param instanceof Double) paramClass = Double.TYPE;
+	                            else if (param instanceof Long) paramClass = Long.TYPE;
+	                            else if (param instanceof Boolean) paramClass = Boolean.TYPE;
+	                            else paramClass = param.getClass();
+                            } else {
+                            	paramClass = a.clazz; // use hint
+                            }
+                            parameterTypes[i - 2] = paramClass;	                            
                         }
                         Constructor<?> ctor = cls.getConstructor(parameterTypes);
                         return new node(ctor.newInstance(parameters.toArray()));
@@ -1067,7 +1083,7 @@ public class paren {
                     }
                     return new node(); 
                     }
-                case CONS: { // (cons x lst): Returns a new list where x is the first element and lst is the rest.
+                case CONS: { // (cons X LST): Returns a new list where x is the first element and lst is the rest.
                     //node x = new node(eval(nvector.get(1)).value);
                     node x = eval(nvector.get(1));
                     Vector<node> lst = eval(nvector.get(2)).vectorValue();
@@ -1077,7 +1093,20 @@ public class paren {
                     	r.add(n2);
                     }
                     return new node(r);
-                }                
+                }
+                case NULLP: { // (null? X): Returns true if X is null.
+                	return new node(eval(nvector.get(1)).value == null);
+                }
+                case CAST: { // (cast CLASS X): Returns type-hinted object.
+                	node x = eval(nvector.get(2));
+                	try {
+						x.clazz = Class.forName(nvector.get(1).stringValue());
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+                	return x;
+                }
                 default: {
                     System.err.println("Not implemented function: [" + func.value.toString() + "]");
                     return new node();}
