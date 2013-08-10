@@ -157,7 +157,7 @@ abc : java.lang.String
 
 (while true
   (set now (. java.util.Calendar getInstance))
-	(prn (new java.util.Date))
+  (prn (new java.util.Date))
   (prn (get-quote))
   (. java.lang.Thread sleep (long 2000)))
 ```
