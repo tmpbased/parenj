@@ -136,15 +136,13 @@ abc : java.lang.String
 
 #### KOSPI200 Ticker
 ```
+; KOSPI200 Ticker (C) 2013 KIM Taegyoon
 (set read-url (fn (address)
   (set url (new java.net.URL address))
   (set stream (. url openStream))
   (set buf (new java.io.BufferedReader (cast java.io.Reader (new java.io.InputStreamReader (cast java.io.InputStream stream)))))
   (set r "")
-  (set flag true)
-  (while flag
-    (set s (. buf readLine))
-    (when (null? s) (set flag false))
+  (while (! (null? (set s (. buf readLine))))
     (set r (strcat r s "\n")))
   (. buf close)
   r))
@@ -156,7 +154,6 @@ abc : java.lang.String
   (if (. m find) (. m group) "")))
 
 (while true
-  (set now (. java.util.Calendar getInstance))
   (prn (new java.util.Date))
   (prn (get-quote))
   (. java.lang.Thread sleep (long 2000)))
