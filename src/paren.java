@@ -8,6 +8,7 @@
 //  Compile-time allocation of variables (No Hashtable lookup)
 //  Much faster (10x).
 //  (eval): Evaluate in global environment
+// Version 1.5.5: Full support for long data type
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -19,7 +20,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-	static final String VERSION = "1.5.4";
+	static final String VERSION = "1.5.5";
     paren() {
         init();
     }
@@ -218,7 +219,11 @@ public class paren {
                 else if (Character.isDigit(tok.charAt(0)) || tok.charAt(0) == '-' && tok.length() >= 2 && Character.isDigit(tok.charAt(1))) { // number
                     if (tok.indexOf('.') != -1 || tok.indexOf('e') != -1) { // double
                         ret.add(new node(Double.parseDouble(tok)));
-                    } else {
+                    }
+                    else if (tok.endsWith("L") || tok.endsWith("l")) { // long
+                    	ret.add(new node(Long.parseLong(tok.substring(0, tok.length() - 1))));
+                    }
+                    else {
                         ret.add(new node(Integer.parseInt(tok)));
                     }
                 }
@@ -500,14 +505,21 @@ public class paren {
                         if (len <= 1) return node_0;
                         node first = eval(nvector.get(1));
                         if (first.value instanceof Integer) {
-                            int acc = (Integer)first.value;
+                            int acc = first.intValue();
                             for (int i = 2; i < len; i++) {
                                 acc += eval(nvector.get(i)).intValue();
                             }
                             return new node(acc);
                         }
+                        else if (first.value instanceof Long) {
+                        	long acc = first.longValue();
+                            for (int i = 2; i < len; i++) {
+                                acc += eval(nvector.get(i)).longValue();
+                            }
+                            return new node(acc);
+                        }
                         else {
-                            double acc = (Double)first.value;
+                            double acc = first.doubleValue();
                             for (int i = 2; i < len; i++) {
                                 acc += eval(nvector.get(i)).doubleValue();
                             }
@@ -520,14 +532,21 @@ public class paren {
                         if (len <= 1) return node_0;
                         node first = eval(nvector.get(1));
                         if (first.value instanceof Integer) {
-                            int acc = (Integer)first.value;
+                            int acc = first.intValue();
                             for (int i = 2; i < len; i++) {
                                 acc -= eval(nvector.get(i)).intValue();
                             }
                             return new node(acc);
                         }
+                        else if (first.value instanceof Long) {
+                        	long acc = first.longValue();
+                            for (int i = 2; i < len; i++) {
+                                acc -= eval(nvector.get(i)).longValue();
+                            }
+                            return new node(acc);
+                        }
                         else {
-                            double acc = (Double)first.value;
+                            double acc = first.doubleValue();
                             for (int i = 2; i < len; i++) {
                                 acc -= eval(nvector.get(i)).doubleValue();
                             }
@@ -540,14 +559,21 @@ public class paren {
                     if (len <= 1) return node_1;
                     node first = eval(nvector.get(1));
                     if (first.value instanceof Integer) {
-                        int acc = (Integer)first.value;
+                        int acc = first.intValue();
                         for (int i = 2; i < len; i++) {
                             acc *= eval(nvector.get(i)).intValue();
                         }
                         return new node(acc);
                     }
+                    else if (first.value instanceof Long) {
+                    	long acc = first.longValue();
+                        for (int i = 2; i < len; i++) {
+                            acc *= eval(nvector.get(i)).longValue();
+                        }
+                        return new node(acc);
+                    }
                     else {
-                        double acc = (Double)first.value;
+                        double acc = first.doubleValue();
                         for (int i = 2; i < len; i++) {
                             acc *= eval(nvector.get(i)).doubleValue();
                         }
@@ -560,14 +586,21 @@ public class paren {
                     if (len <= 1) return node_1;
                     node first = eval(nvector.get(1));
                     if (first.value instanceof Integer) {
-                        int acc = (Integer)first.value;
+                        int acc = first.intValue();
                         for (int i = 2; i < len; i++) {
                             acc /= eval(nvector.get(i)).intValue();
                         }
                         return new node(acc);
                     }
+                    else if (first.value instanceof Long) {
+                    	long acc = first.longValue();
+                        for (int i = 2; i < len; i++) {
+                            acc /= eval(nvector.get(i)).longValue();
+                        }
+                        return new node(acc);
+                    }
                     else {
-                        double acc = (Double)first.value;
+                        double acc = first.doubleValue();
                         for (int i = 2; i < len; i++) {
                             acc /= eval(nvector.get(i)).doubleValue();
                         }
@@ -589,6 +622,9 @@ public class paren {
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() + 1);
                     }
+                    else if (first.value instanceof Long) {
+                    	return new node(first.longValue() + 1);
+                    }
                     else {
                         return new node(first.doubleValue() + 1.0);
                     }
@@ -600,6 +636,9 @@ public class paren {
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() - 1);
                     }
+                    else if (first.value instanceof Long) {
+                    	return new node(first.longValue() - 1);
+                    }
                     else {
                         return new node(first.doubleValue() - 1.0);
                     }
@@ -609,10 +648,13 @@ public class paren {
                     if (len <= 1) return node_0;
                     node n2 = nvector.get(1);
                     if (n2.value instanceof Integer) {
-                        n2.value = ((Integer) n2.value + 1);
+                        n2.value = n2.intValue() + 1;
+                    }
+                    else if (n2.value instanceof Long) {
+                    	n2.value = n2.longValue() + 1;
                     }
                     else {
-                        n2.value = ((Integer) n2.value + 1);
+                        n2.value = n2.doubleValue() + 1.0;
                     }
                     return n2;
                 }
@@ -621,10 +663,13 @@ public class paren {
                     if (len <= 1) return node_0;                    
                     node n2 = nvector.get(1);
                     if (n2.value instanceof Integer) {
-                        n2.value = ((Integer) n2.value - 1);
+                        n2.value = n2.intValue() - 1;
+                    }
+                    else if (n2.value instanceof Long) {
+                    	n2.value = n2.longValue() - 1;
                     }
                     else {
-                        n2.value = ((Integer) n2.value - 1);
+                        n2.value = (n2.doubleValue() - 1.0);
                     }
                     return n2;
                 }
@@ -642,7 +687,7 @@ public class paren {
                     node n2 = nvector.get(1); 
                     n2.value = eval(nvector.get(2)).value; 
                     return n2;}
-                case EQ: { // (= X ..) short-circuit, Object.equals()                    
+                case EQ: { // (= X ..) short-circuit, Object.equals()
                     node first = eval(nvector.get(1));
                     Object firstv = first.value;
                     for (int i = 2; i < nvector.size(); i++) {
@@ -656,6 +701,12 @@ public class paren {
                         for (int i = 2; i < nvector.size(); i++) {
                             if (eval(nvector.get(i)).intValue() != firstv) {return node_false;}
                         }
+                    }
+                    else if (first.value instanceof Long) {
+                	   long firstv = first.longValue();                        
+                       for (int i = 2; i < nvector.size(); i++) {
+                           if (eval(nvector.get(i)).longValue() != firstv) {return node_false;}
+                       }
                     }
                     else {
                         double firstv = first.doubleValue();                        
@@ -672,6 +723,12 @@ public class paren {
                             if (eval(nvector.get(i)).intValue() == firstv) {return node_false;}
                         }
                     }
+                    else if (first.value instanceof Long) {
+                	   long firstv = first.longValue();                        
+                       for (int i = 2; i < nvector.size(); i++) {
+                           if (eval(nvector.get(i)).longValue() == firstv) {return node_false;}
+                       }
+                    }
                     else {
                         double firstv = first.doubleValue();                        
                         for (int i = 2; i < nvector.size(); i++) {
@@ -685,6 +742,9 @@ public class paren {
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() < second.intValue());
                     }
+                    else if (first.value instanceof Long) {
+                    	return new node(first.longValue() < second.longValue());
+                    }
                     else {
                         return new node(first.doubleValue() < second.doubleValue());
                     }}
@@ -693,6 +753,9 @@ public class paren {
                     node second = eval(nvector.get(2));
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() > second.intValue());
+                    }
+                    else if (first.value instanceof Long) {
+                    	return new node(first.longValue() > second.longValue());
                     }
                     else {
                         return new node(first.doubleValue() > second.doubleValue());
@@ -703,6 +766,9 @@ public class paren {
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() <= second.intValue());
                     }
+                    else if (first.value instanceof Long) {
+                    	return new node(first.longValue() <= second.longValue());
+                    }
                     else {
                         return new node(first.doubleValue() <= second.doubleValue());
                     }}
@@ -711,6 +777,9 @@ public class paren {
                     node second = eval(nvector.get(2));
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() >= second.intValue());
+                    }
+                    else if (first.value instanceof Long) {
+                    	return new node(first.longValue() >= second.longValue());
                     }
                     else {
                         return new node(first.doubleValue() >= second.doubleValue());
@@ -753,6 +822,28 @@ public class paren {
                             int last = eval(nvector.get(3)).intValue();
                             int step = eval(nvector.get(4)).intValue();                            
                             int a = start.intValue();
+                            node na = nvector.get(1);
+                            if (step >= 0) {
+                                for (; a <= last; a += step) {
+                                    na.value = a;
+                                    for (int i = 5; i < len; i++) {
+                                        eval(nvector.get(i));
+                                    }
+                                }
+                            }
+                            else {
+                                for (; a >= last; a += step) {
+                                    na.value = a;
+                                    for (int i = 5; i < len; i++) {
+                                        eval(nvector.get(i));
+                                    }
+                                }
+                            }
+                        }
+                        else if (start.value instanceof Long) {
+                            long last = eval(nvector.get(3)).longValue();
+                            long step = eval(nvector.get(4)).longValue();                            
+                            long a = start.longValue();
                             node na = nvector.get(1);
                             if (step >= 0) {
                                 for (; a <= last; a += step) {
@@ -905,6 +996,17 @@ public class paren {
                         int a = eval(nvector.get(1)).intValue();
                         int last = eval(nvector.get(2)).intValue();
                         int step = eval(nvector.get(3)).intValue();                        
+                        if (step >= 0) {
+                            for (; a <= last; a += step) {
+                                ret.add(new node(a));}}
+                        else {
+                            for (; a >= last; a += step) {
+                                ret.add(new node(a));}}
+                    }
+                    else if (start.value instanceof Long) {
+                        long a = eval(nvector.get(1)).longValue();
+                        long last = eval(nvector.get(2)).longValue();
+                        long step = eval(nvector.get(3)).longValue();                        
                         if (step >= 0) {
                             for (; a <= last; a += step) {
                                 ret.add(new node(a));}}

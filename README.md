@@ -156,7 +156,7 @@ abc : java.lang.String
 (while true
   (prn (new java.util.Date))
   (prn (get-quote))
-  (. java.lang.Thread sleep (long 2000)))
+  (. java.lang.Thread sleep 2000L))
 ```
 
 ### Java interoperability (from Java) ###
