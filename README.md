@@ -68,9 +68,9 @@ true : java.lang.Boolean
 > (apply + (list 1 2 3))
 6 : java.lang.Integer
 > (map sqrt (list 1 2 3 4))
-[1.0, 1.4142135623730951, 1.7320508075688772, 2.0] : java.util.Vector
+[1.0, 1.4142135623730951, 1.7320508075688772, 2.0] : java.util.ArrayList
 > (filter even? (list 1 2 3 4 5))
-[2, 4] : java.util.Vector
+[2, 4] : java.util.ArrayList
 > (= "abc" "abc") ; Object.equals()
 true : java.lang.Boolean
 > (set x 1)
@@ -84,7 +84,7 @@ true : java.lang.Boolean
   (add3 4)    
 7 : java.lang.Integer
 > (cons 1 (list 2 3))
-[1, 2, 3] : java.util.Vector
+[1, 2, 3] : java.util.ArrayList
 ```
 
 #### Recursion ####
