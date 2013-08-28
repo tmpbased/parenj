@@ -25,10 +25,11 @@ Predefined Symbols:
  ! != % && * + ++ - -- .
  .get .set / < <= = == > >= E
  PI ^ apply begin cast ceil char-at chr cons dec
- double eval exit false filter floor fn fold for if
- inc int length list ln log10 long map new nth
- null null? pr prn quote rand range read-string set sqrt
- strcat string strlen system true type when while ||
+ defmacro double eval exit false filter floor fn fold for
+ if inc int length list ln log10 long map new
+ nth null null? pr prn quote rand range read-string set
+ sqrt strcat string strlen system true type when while ||
+
 Etc.:
  (list) "string" ; end-of-line comment
 ```
@@ -104,6 +105,12 @@ true : java.lang.Boolean
 4 : java.lang.Integer
 > (length (list 1 2 3))
 3 : java.lang.Integer
+```
+
+### Macro ###
+```
+> (defmacro infix (a op b) (op a b)) (infix 3 + 4)
+7
 ```
 
 ### Java interoperability (from Paren) ###

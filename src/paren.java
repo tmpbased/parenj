@@ -9,6 +9,7 @@
 //  Much faster (10x).
 //  (eval): Evaluate in global environment
 // Version 1.5.5: Full support for long data type
+// Version 1.6: Added macro
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -20,7 +21,7 @@ import java.util.Vector;
 import java.lang.Math;
 
 public class paren {
-	static final String VERSION = "1.5.5";
+	static final String VERSION = "1.6";
     paren() {
         init();
     }
@@ -246,7 +247,7 @@ public class paren {
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
         EVAL, QUOTE, FN, LIST, APPLY, FOLD, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET, NEW,
-        PR, PRN, EXIT, SYSTEM, CONS, LONG, NULLP, CAST
+        PR, PRN, EXIT, SYSTEM, CONS, LONG, NULLP, CAST, DEFMACRO
     }
     
     environment global_env = new environment(); // variables. compile-time
@@ -343,8 +344,25 @@ public class paren {
         global_env.env.put("long", new node(builtin.LONG));
         global_env.env.put("null?", new node(builtin.NULLP));
         global_env.env.put("cast", new node(builtin.CAST));
+        global_env.env.put("defmacro", new node(builtin.DEFMACRO));
     }
     
+    Hashtable<String, node[]> macros = new Hashtable<>();
+    
+	node apply_macro(node body, Hashtable<String, node> vars) {
+		if (body.value instanceof Vector) {
+			@SuppressWarnings("unchecked")
+			Vector<node> bvec = (Vector<node>) body.value;
+			for (int i = 0; i < bvec.size(); i++) {
+				bvec.set(i, apply_macro(bvec.get(i), vars));
+			}
+			return body;
+		} else {
+			String bstr = body.stringValue();
+			if (vars.containsKey(bstr)) return vars.get(bstr); else return body;
+		}
+	}
+
     node compile(node n, environment env) {    	
         if (n.value instanceof symbol) {
             symbol sym = (symbol) n.value;
@@ -466,6 +484,10 @@ public class paren {
                     }
                     return new node(r);
                 }
+                case DEFMACRO: { // (defmacro add (a b) (+ a b)) ; define macro
+                	macros.put(nvector.get(1).stringValue(), new node[]{nvector.get(2), nvector.get(3)});
+                    return new node();                	
+                }
                 default: {
                     Vector<node> r = new Vector<node>();
                     r.add(func);                    
@@ -477,11 +499,21 @@ public class paren {
                 } // end switch(found)                
             }
             else {
-                Vector<node> r = new Vector<node>();
-                for (node n2: nvector) {
-                    r.add(compile(n2, env));
-                }
-                return new node(r);
+            	if (macros.containsKey(nvector.get(0).stringValue())) { // compile macro
+                    node[] macro = macros.get(nvector.get(0).stringValue());
+                    Hashtable<String, node> macrovars = new Hashtable<>();          
+                    Vector<node> argsyms = macro[0].vectorValue();
+                    for (int i=0; i<argsyms.size(); i++) {                          
+                      macrovars.put(argsyms.get(i).stringValue(), nvector.get(i+1));
+                    }
+                    return compile(apply_macro(macro[1], macrovars), env);                		
+            	} else {            	
+	                Vector<node> r = new Vector<node>();
+	                for (node n2: nvector) {
+	                    r.add(compile(n2, env));
+	                }
+	                return new node(r);
+            	}
             }
         }
         else {
