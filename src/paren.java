@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	static final String VERSION = "1.6";
+	static final String VERSION = "1.6.1";
     paren() {
         init();
     }
