@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	static final String VERSION = "1.6.1";
+	static final String VERSION = "1.6.2";
     paren() {
         init();
     }
@@ -354,10 +354,11 @@ public class paren {
 		if (body.value instanceof ArrayList) {
 			@SuppressWarnings("unchecked")
 			ArrayList<node> bvec = (ArrayList<node>) body.value;
+			ArrayList<node> ret = new ArrayList<>();
 			for (int i = 0; i < bvec.size(); i++) {
-				bvec.set(i, apply_macro(bvec.get(i), vars));
+				ret.add(apply_macro(bvec.get(i), vars));
 			}
-			return body;
+			return new node(ret);
 		} else {
 			String bstr = body.stringValue();
 			if (vars.containsKey(bstr)) return vars.get(bstr); else return body;
