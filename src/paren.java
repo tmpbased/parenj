@@ -11,18 +11,20 @@
 // Version 1.5.5: Full support for long data type
 // Version 1.6: Added macro
 // Version 1.6.1: Faster execution (Hashtable -> HashMap, Vector -> ArrayList)
+// Version 1.6.3: added defmacro ...
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	static final String VERSION = "1.6.2";
+	static final String VERSION = "1.6.3";
     paren() {
         init();
     }
@@ -253,22 +255,26 @@ public class paren {
     
     environment global_env = new environment(); // variables. compile-time
     
-    void print_symbols() {
+    void print_collection(Collection<String> coll) {
         int i = 0;
-        for (String key : new TreeSet<String>(global_env.env.keySet())) {
+        for (String key : new TreeSet<String>(coll)) {
             System.out.print(" " + key);
             i++;
             if (i % 10 == 0) System.out.println();            
         }
         System.out.println();
     }
-    
+
     void print_logo() {
         System.out.println(
             "Parenj " + VERSION + " (C) 2013 Kim, Taegyoon");
         System.out.println(
             "Predefined Symbols:");
-        print_symbols();
+        print_collection(global_env.env.keySet());
+        System.out.println(
+                "Macros:");
+        print_collection(macros.keySet());
+
         System.out.println(
             "Etc.:\n" +
             " (list) \"string\" ; end-of-line comment");
@@ -346,6 +352,8 @@ public class paren {
         global_env.env.put("null?", new node(builtin.NULLP));
         global_env.env.put("cast", new node(builtin.CAST));
         global_env.env.put("defmacro", new node(builtin.DEFMACRO));
+
+        eval_string("(defmacro defn (name ...) (set name (fn ...)))");
     }
     
     HashMap<String, node[]> macros = new HashMap<>();
@@ -356,13 +364,40 @@ public class paren {
 			ArrayList<node> bvec = (ArrayList<node>) body.value;
 			ArrayList<node> ret = new ArrayList<>();
 			for (int i = 0; i < bvec.size(); i++) {
-				ret.add(apply_macro(bvec.get(i), vars));
+				node b = bvec.get(i);
+				if (b.stringValue().equals("...")) {
+					ret.addAll(vars.get(b.stringValue()).arrayListValue());
+				} else ret.add(apply_macro(bvec.get(i), vars));
 			}
 			return new node(ret);
 		} else {
 			String bstr = body.stringValue();
 			if (vars.containsKey(bstr)) return vars.get(bstr); else return body;
 		}
+	}
+
+	node macroexpand(node n) {
+		ArrayList<node> nArrayList = n.arrayListValue();
+		if (macros.containsKey(nArrayList.get(0).stringValue())) {
+			node[] macro = macros.get(nArrayList.get(0).stringValue());
+			HashMap<String, node> macrovars = new HashMap<>();
+			ArrayList<node> argsyms = macro[0].arrayListValue();
+			for (int i = 0; i < argsyms.size(); i++) {
+				String argsym = argsyms.get(i).stringValue();
+				if (argsym.equals("...")) {
+					node n2 = new node(new ArrayList<node>());
+					macrovars.put(argsym, n2);
+					ArrayList<node> ellipsis = n2.arrayListValue();
+					for (int i2 = i + 1; i2 < nArrayList.size(); i2++)
+						ellipsis.add(nArrayList.get(i2));
+					break;
+				} else {
+					macrovars.put(argsyms.get(i).stringValue(), nArrayList.get(i+1));
+				}
+			}
+			return apply_macro(macro[1], macrovars);
+		} else
+			return n;
 	}
 
     node compile(node n, environment env) {    	
@@ -502,13 +537,7 @@ public class paren {
             }
             else {
             	if (macros.containsKey(nArrayList.get(0).stringValue())) { // compile macro
-                    node[] macro = macros.get(nArrayList.get(0).stringValue());
-                    HashMap<String, node> macrovars = new HashMap<>();          
-                    ArrayList<node> argsyms = macro[0].arrayListValue();
-                    for (int i=0; i<argsyms.size(); i++) {                          
-                      macrovars.put(argsyms.get(i).stringValue(), nArrayList.get(i+1));
-                    }
-                    return compile(apply_macro(macro[1], macrovars), env);                		
+                    return compile(macroexpand(n), env);
             	} else {            	
 	                ArrayList<node> r = new ArrayList<node>();
 	                for (node n2: nArrayList) {

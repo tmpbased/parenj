@@ -30,6 +30,8 @@ Predefined Symbols:
  nth null null? pr prn quote rand range read-string set
  sqrt strcat string strlen system true type when while ||
 
+Macros:
+ defn
 Etc.:
  (list) "string" ; end-of-line comment
 ```
@@ -109,8 +111,8 @@ true : java.lang.Boolean
 
 ### Macro ###
 ```
-> (defmacro infix (a op b) (op a b)) (infix 3 + 4)
-7
+> (defmacro infix (a op ...) (op a ...)) (infix 3 + 4 5)
+12
 ```
 
 ### Java interoperability (from Paren) ###
