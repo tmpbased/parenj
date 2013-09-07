@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	static final String VERSION = "1.6.3";
+	static final String VERSION = "1.6.4";
     paren() {
         init();
     }
@@ -102,7 +102,7 @@ public class paren {
             this.env = env;
         }
         public String toString() {
-            return "function";
+            return def.toString();
         }
     }
     

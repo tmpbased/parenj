@@ -56,13 +56,13 @@ In a function, [lexical scoping](http://en.wikipedia.org/wiki/Lexical_scoping#Le
 > ((fn (x) (* x 2)) 3)
 6 : java.lang.Integer
 > (set sum (fn (x y) (+ x y)))
- : null
+[FN, [x, y], [+, x, y]] : paren$fn
 > (sum 1 2)
 3 : java.lang.Integer
 > (fold sum (range 1 10 1))
 55 : java.lang.Integer
 > (set even? (fn (x) (== 0 (% x 2))))
- : null
+[FN, [x], [==, 0, [%, x, 2]]] : paren$fn
 > (even? 3)
 false : java.lang.Boolean
 > (even? 4)
@@ -126,7 +126,7 @@ true : java.lang.Boolean
 > (. true toString)
 true : java.lang.String
 > (set i 3)
- : null
+3 : java.lang.Integer
 > (. i doubleValue)
 3.0 : java.lang.Double
 > (.get java.lang.Math PI) ; get field
