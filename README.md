@@ -31,7 +31,7 @@ Predefined Symbols:
  sqrt strcat string strlen system true type when while ||
 
 Macros:
- defn
+ defn setfn
 Etc.:
  (list) "string" ; end-of-line comment
 ```
@@ -55,7 +55,7 @@ In a function, [lexical scoping](http://en.wikipedia.org/wiki/Lexical_scoping#Le
 3 : java.lang.Integer
 > ((fn (x) (* x 2)) 3)
 6 : java.lang.Integer
-> (set sum (fn (x y) (+ x y)))
+> (setfn sum (x y) (+ x y))
 [FN, [x, y], [+, x, y]] : paren$fn
 > (sum 1 2)
 3 : java.lang.Integer

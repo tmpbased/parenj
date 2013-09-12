@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	static final String VERSION = "1.6.4";
+	static final String VERSION = "1.6.5";
     paren() {
         init();
     }
@@ -353,7 +353,8 @@ public class paren {
         global_env.env.put("cast", new node(builtin.CAST));
         global_env.env.put("defmacro", new node(builtin.DEFMACRO));
 
-        eval_string("(defmacro defn (name ...) (set name (fn ...)))");
+        eval_string("(defmacro setfn (name ...) (set name (fn ...)))");
+		eval_string("(defmacro defn (...) (setfn ...))");        
     }
     
     HashMap<String, node[]> macros = new HashMap<>();
