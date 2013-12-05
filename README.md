@@ -120,6 +120,7 @@ true : java.lang.Boolean
 
 ### Java interoperability (from Paren) ###
 ```
+> (. javax.swing.JOptionPane showMessageDialog (cast java.awt.Component null) (cast java.lang.Object "Hello, World!")) ; GUI Hello, World!
 > (. java.lang.Math random) ; class's static method
 0.4780254852371699 : java.lang.Double
 > (. java.lang.Math floor 1.5)
