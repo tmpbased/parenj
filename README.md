@@ -12,7 +12,10 @@ javac paren.java parenj.java
 
 ## Run ##
 ```
-Usage: java parenj [OPTIONS...] [FILES...]
+Usage:
+java paren.parenj [OPTIONS...] [FILES...]
+java -cp parenj-version.jar paren.parenj [OPTIONS...] [FILES...]
+java -jar parenj-version.jar [OPTIONS...] [FILES...]
 
 OPTIONS:
     -h    print this screen.
@@ -184,6 +187,7 @@ public class player {
 
 parenjTest.java
 ```
+import paren.paren;
 public class parenjTest {
     public static Object testField;
     public static void main(String[] args) {

@@ -12,7 +12,8 @@
 // Version 1.6: Added macro
 // Version 1.6.1: Faster execution (Hashtable -> HashMap, Vector -> ArrayList)
 // Version 1.6.3: added defmacro ...
-
+// Version 1.7: package paren
+package paren;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
@@ -24,12 +25,12 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	static final String VERSION = "1.6.5";
-    paren() {
+	public static final String VERSION = "1.7";
+    public paren() {
         init();
     }
     
-    static class node implements Cloneable {
+    public static class node implements Cloneable {
         Object value;
         boolean isData;
         Class<?> clazz = null; // type hint
@@ -265,7 +266,7 @@ public class paren {
         System.out.println();
     }
 
-    void print_logo() {
+    public void print_logo() {
         System.out.println(
             "Parenj " + VERSION + " (C) 2013 Kim, Taegyoon");
         System.out.println(
@@ -1334,7 +1335,7 @@ public class paren {
         return eval(lst.get(last));
     }
         
-    node eval_string(String s) {
+    public node eval_string(String s) {
         ArrayList<node> compiled = compile_all(parse(s));
         return eval_all(compiled);
     }
@@ -1352,7 +1353,7 @@ public class paren {
     }    
     
     // read-eval-print loop
-    void repl() {
+    public void repl() {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String code = "";
         while (true) {

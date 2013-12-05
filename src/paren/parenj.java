@@ -1,3 +1,4 @@
+package paren;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -16,7 +17,7 @@ public class parenj {
             return;
         } else if (args.length == 1) {
             if (args[0].equals("-h")) {
-                System.out.println("Usage: java parenj [OPTIONS...] [FILES...]");
+                System.out.println("Usage: java paren.parenj [OPTIONS...] [FILES...]");
                 System.out.println();
                 System.out.println("OPTIONS:");
                 System.out.println("    -h    print this screen.");
