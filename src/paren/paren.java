@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.7.2";
+	public static final String VERSION = "1.7.3";
     public paren() {
         init();
     }
@@ -881,7 +881,7 @@ public class paren {
                 case TYPE: { // (type X)
                     return new node(eval(nArrayList.get(1), env).type());}
                 case EVAL: { // (eval X)
-                    return new node(eval(eval(nArrayList.get(1), env), env).value);}
+                    return eval(eval(nArrayList.get(1), env), env);}
                 case QUOTE: { // (quote X)
                     return nArrayList.get(1);}
                 case FN: {
