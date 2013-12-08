@@ -13,6 +13,7 @@
 // Version 1.6.1: Faster execution (Hashtable -> HashMap, Vector -> ArrayList)
 // Version 1.6.3: added defmacro ...
 // Version 1.7: package paren
+// Version 1.7.1: improved function call
 package paren;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -25,7 +26,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.7";
+	public static final String VERSION = "1.7.1";
     public paren() {
         init();
     }
@@ -86,6 +87,7 @@ public class paren {
     static final node node_false = new node(false);
     static final node node_0 = new node(0);
     static final node node_1 = new node(1);
+    static final node node_null = new node();
 
     static class symbol {
         String name;
@@ -97,10 +99,10 @@ public class paren {
     
     static class fn { // anonymous function
         ArrayList<node> def; // definition
-        environment env;        
-        fn(ArrayList<node> def, environment env) {
+        environment outer_env;        
+        fn(ArrayList<node> def, environment outer_env) {
             this.def = def;
-            this.env = env;
+            this.outer_env = outer_env;
         }
         public String toString() {
             return def.toString();
@@ -125,6 +127,11 @@ public class paren {
                     return null;
                 }
             }            
+        }
+        
+        node set(String name, node v) {
+        	env.put(name, v);
+        	return v;
         }
     }
     
@@ -402,164 +409,46 @@ public class paren {
 			return n;
 	}
 
-    node compile(node n, environment env) {    	
-        if (n.value instanceof symbol) {
-            symbol sym = (symbol) n.value;
-            node found = env.get(sym.name);
-            if (found != null) { // variable
-            	found.isData = true;
-                return found;
-            }
-            else {
-                return n;
-//                System.err.println("Unknown variable: [" + sym.name + "]");
-//                return new node();
-            }
-        }
-        else if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
+    node compile(node n) {    	
+        if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
         	if (n.isData) return n;
             ArrayList<node> nArrayList = n.arrayListValue();                
-            if (nArrayList.size() == 0) return new node();
-            node func = compile(nArrayList.get(0), env);
-            builtin foundBuiltin;
-            if (func.value instanceof builtin) { // special forms regarding symbol
-                foundBuiltin = (builtin) func.value;
-                switch(foundBuiltin) {
-                case SET: { // (set SYMBOL VALUE)
-                    node symbol;
-                    String name = ((symbol) nArrayList.get(1).value).name;
-                    node found = env.get(name);
-                    if (found != null) { // variable
-                        symbol = found;
-                    }
-                    else {
-                        symbol = new node();
-                        env.env.put(name, symbol);
-                    }                    
-                    ArrayList<node> r = new ArrayList<node>();
-                    r.add(func);
-                    r.add(symbol);
-                    r.add(compile(nArrayList.get(2), env));
-                    return new node(r);}
-                case FOR: // (for SYMBOL START END STEP EXPR ..)
-                    {
-                        node symbol;
-                        String name = ((symbol) nArrayList.get(1).value).name;
-                        node found = env.get(name);
-                        if (found != null) { // variable
-                            symbol = found;
-                        }
-                        else {
-                            symbol = new node();
-                            env.env.put(name, symbol);
-                        }
-                        ArrayList<node> r = new ArrayList<node>();
-                        r.add(func);
-                        r.add(symbol);
-                        int len = nArrayList.size();
-                        for (int i = 2; i < len; i++) {
-                            r.add(compile(nArrayList.get(i), env));
-                        }
-                        return new node(r);
-                    }
-                case FN: {
-                    // anonymous function. lexical scoping
-                    // (fn (ARGUMENT ..) BODY ..)                    
-                    environment local_env = new environment(env);
-                    ArrayList<node> r = new ArrayList<node>();
-                    r.add(func);
-                    
-                    for (int i=1; i<nArrayList.size(); i++) {
-                        r.add(nArrayList.get(i));
-                    }
-                    return new node(new fn(r, local_env));                
-                }
-                case QUOTE: {
-                    ArrayList<node> r = new ArrayList<node>();
-                    r.add(func);                    
-                    int len = nArrayList.size();
-                    for (int i = 1; i < len; i++) {
-                        r.add(nArrayList.get(i));
-                    }
-                    return new node(r);                    
-                }
-                case DOT: {
-                    ArrayList<node> r = new ArrayList<node>();
-                    r.add(func);                    
-                    int len = nArrayList.size();
-                    for (int i = 1; i < len; i++) {
-                        if (i == 2) {
-                            r.add(nArrayList.get(i));
-                        } else {
-                            r.add(compile(nArrayList.get(i), env));
-                        }
-                    }
-                    return new node(r);                     
-                }
-                case DOTGET:
-                case DOTSET: {
-                    ArrayList<node> r = new ArrayList<node>();
-                    r.add(func);                    
-                    int len = nArrayList.size();
-                    for (int i = 1; i < len; i++) {
-                        if (i <= 2) {
-                            r.add(nArrayList.get(i));
-                        } else {
-                            r.add(compile(nArrayList.get(i), env));
-                        }
-                    }
-                    return new node(r);                    
-                }
-                case NEW: {
-                    ArrayList<node> r = new ArrayList<node>();
-                    r.add(func);                    
-                    int len = nArrayList.size();
-                    for (int i = 1; i < len; i++) {
-                        if (i == 1) {
-                            r.add(nArrayList.get(i));
-                        } else {
-                            r.add(compile(nArrayList.get(i), env));
-                        }
-                    }
-                    return new node(r);
-                }
-                case DEFMACRO: { // (defmacro add (a b) (+ a b)) ; define macro
-                	macros.put(nArrayList.get(1).stringValue(), new node[]{nArrayList.get(2), nArrayList.get(3)});
-                    return new node();                	
-                }
-                default: {
-                    ArrayList<node> r = new ArrayList<node>();
-                    r.add(func);                    
-                    int len = nArrayList.size();
-                    for (int i = 1; i < len; i++) {
-                        r.add(compile(nArrayList.get(i), env));
-                    }
-                    return new node(r);}
-                } // end switch(found)                
-            }
-            else {
+            if (nArrayList.size() == 0) return node_null;
+            node func = compile(nArrayList.get(0));
+            if (func.value instanceof symbol && func.toString().equals(("defmacro"))) {
+                // (defmacro add (a b) (+ a b)) ; define macro
+            	macros.put(nArrayList.get(1).stringValue(), new node[]{nArrayList.get(2), nArrayList.get(3)});
+                return node_null;                	
+            } else {
             	if (macros.containsKey(nArrayList.get(0).stringValue())) { // compile macro
-                    return compile(macroexpand(n), env);
+                    return compile(macroexpand(n));
             	} else {            	
 	                ArrayList<node> r = new ArrayList<node>();
 	                for (node n2: nArrayList) {
-	                    r.add(compile(n2, env));
+	                    r.add(compile(n2));
 	                }
 	                return new node(r);
             	}
             }
-        }
-        else {
+        } else {
             return n;
         }
     }    
-    
-    node eval(node n) {    	
-        if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
+        
+    node eval(node n, environment env) {
+    	if (n.value instanceof symbol) {
+    		node r = env.get(n.toString());
+    		if (r == null) {
+    			System.err.println("Unknown variable: " + n.toString());
+    			return node_null;
+    		}
+    		return r;
+    	}
+    	else if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
         	if (n.isData) return n.clone();;
             ArrayList<node> nArrayList = n.arrayListValue();                
-            if (nArrayList.size() == 0) return new node();
-            node func = eval(nArrayList.get(0));
+            if (nArrayList.size() == 0) return node_null;
+            node func = eval(nArrayList.get(0), env);
             builtin foundBuiltin;
             if (func.value instanceof builtin) {
                 foundBuiltin = (builtin) func.value;
@@ -568,25 +457,25 @@ public class paren {
                     {
                         int len = nArrayList.size();
                         if (len <= 1) return node_0;
-                        node first = eval(nArrayList.get(1));
+                        node first = eval(nArrayList.get(1), env);
                         if (first.value instanceof Integer) {
                             int acc = first.intValue();
                             for (int i = 2; i < len; i++) {
-                                acc += eval(nArrayList.get(i)).intValue();
+                                acc += eval(nArrayList.get(i), env).intValue();
                             }
                             return new node(acc);
                         }
                         else if (first.value instanceof Long) {
                         	long acc = first.longValue();
                             for (int i = 2; i < len; i++) {
-                                acc += eval(nArrayList.get(i)).longValue();
+                                acc += eval(nArrayList.get(i), env).longValue();
                             }
                             return new node(acc);
                         }
                         else {
                             double acc = first.doubleValue();
                             for (int i = 2; i < len; i++) {
-                                acc += eval(nArrayList.get(i)).doubleValue();
+                                acc += eval(nArrayList.get(i), env).doubleValue();
                             }
                             return new node(acc);
                         }
@@ -595,25 +484,25 @@ public class paren {
                     {
                         int len = nArrayList.size();
                         if (len <= 1) return node_0;
-                        node first = eval(nArrayList.get(1));
+                        node first = eval(nArrayList.get(1), env);
                         if (first.value instanceof Integer) {
                             int acc = first.intValue();
                             for (int i = 2; i < len; i++) {
-                                acc -= eval(nArrayList.get(i)).intValue();
+                                acc -= eval(nArrayList.get(i), env).intValue();
                             }
                             return new node(acc);
                         }
                         else if (first.value instanceof Long) {
                         	long acc = first.longValue();
                             for (int i = 2; i < len; i++) {
-                                acc -= eval(nArrayList.get(i)).longValue();
+                                acc -= eval(nArrayList.get(i), env).longValue();
                             }
                             return new node(acc);
                         }
                         else {
                             double acc = first.doubleValue();
                             for (int i = 2; i < len; i++) {
-                                acc -= eval(nArrayList.get(i)).doubleValue();
+                                acc -= eval(nArrayList.get(i), env).doubleValue();
                             }
                             return new node(acc);
                         }
@@ -622,25 +511,25 @@ public class paren {
                 {
                     int len = nArrayList.size();
                     if (len <= 1) return node_1;
-                    node first = eval(nArrayList.get(1));
+                    node first = eval(nArrayList.get(1), env);
                     if (first.value instanceof Integer) {
                         int acc = first.intValue();
                         for (int i = 2; i < len; i++) {
-                            acc *= eval(nArrayList.get(i)).intValue();
+                            acc *= eval(nArrayList.get(i), env).intValue();
                         }
                         return new node(acc);
                     }
                     else if (first.value instanceof Long) {
                     	long acc = first.longValue();
                         for (int i = 2; i < len; i++) {
-                            acc *= eval(nArrayList.get(i)).longValue();
+                            acc *= eval(nArrayList.get(i), env).longValue();
                         }
                         return new node(acc);
                     }
                     else {
                         double acc = first.doubleValue();
                         for (int i = 2; i < len; i++) {
-                            acc *= eval(nArrayList.get(i)).doubleValue();
+                            acc *= eval(nArrayList.get(i), env).doubleValue();
                         }
                         return new node(acc);
                     }
@@ -649,41 +538,41 @@ public class paren {
                 {
                     int len = nArrayList.size();
                     if (len <= 1) return node_1;
-                    node first = eval(nArrayList.get(1));
+                    node first = eval(nArrayList.get(1), env);
                     if (first.value instanceof Integer) {
                         int acc = first.intValue();
                         for (int i = 2; i < len; i++) {
-                            acc /= eval(nArrayList.get(i)).intValue();
+                            acc /= eval(nArrayList.get(i), env).intValue();
                         }
                         return new node(acc);
                     }
                     else if (first.value instanceof Long) {
                     	long acc = first.longValue();
                         for (int i = 2; i < len; i++) {
-                            acc /= eval(nArrayList.get(i)).longValue();
+                            acc /= eval(nArrayList.get(i), env).longValue();
                         }
                         return new node(acc);
                     }
                     else {
                         double acc = first.doubleValue();
                         for (int i = 2; i < len; i++) {
-                            acc /= eval(nArrayList.get(i)).doubleValue();
+                            acc /= eval(nArrayList.get(i), env).doubleValue();
                         }
                         return new node(acc);
                     }
                 }
                 case CARET: { // (^ BASE EXPONENT)
                     return new node(Math.pow(
-                            eval(nArrayList.get(1)).doubleValue(),
-                            eval(nArrayList.get(2)).doubleValue()));}
+                            eval(nArrayList.get(1), env).doubleValue(),
+                            eval(nArrayList.get(2), env).doubleValue()));}
                 case PERCENT: { // (% DIVIDEND DIVISOR)
-                    return new node(eval(nArrayList.get(1)).intValue() % eval(nArrayList.get(2)).intValue());}
+                    return new node(eval(nArrayList.get(1), env).intValue() % eval(nArrayList.get(2), env).intValue());}
                 case SQRT: { // (sqrt X)
-                    return new node(Math.sqrt(eval(nArrayList.get(1)).doubleValue()));}
+                    return new node(Math.sqrt(eval(nArrayList.get(1), env).doubleValue()));}
                 case INC: { // (inc X)
                     int len = nArrayList.size();
                     if (len <= 1) return node_0;
-                    node first = eval(nArrayList.get(1));
+                    node first = eval(nArrayList.get(1), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() + 1);
                     }
@@ -697,7 +586,7 @@ public class paren {
                 case DEC: { // (dec X)
                     int len = nArrayList.size();
                     if (len <= 1) return node_0;
-                    node first = eval(nArrayList.get(1));
+                    node first = eval(nArrayList.get(1), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() - 1);
                     }
@@ -711,7 +600,8 @@ public class paren {
                 case PLUSPLUS: { // (++ X)
                     int len = nArrayList.size();
                     if (len <= 1) return node_0;
-                    node n2 = nArrayList.get(1);
+                    //node n2 = nArrayList.get(1);
+                    node n2 = env.get(nArrayList.get(1).toString());
                     if (n2.value instanceof Integer) {
                         n2.value = n2.intValue() + 1;
                     }
@@ -726,7 +616,8 @@ public class paren {
                 case MINUSMINUS: { // (-- X)
                     int len = nArrayList.size();
                     if (len <= 1) return node_0;                    
-                    node n2 = nArrayList.get(1);
+                    //node n2 = nArrayList.get(1);
+                    node n2 = env.get(nArrayList.get(1).toString());
                     if (n2.value instanceof Integer) {
                         n2.value = n2.intValue() - 1;
                     }
@@ -739,71 +630,72 @@ public class paren {
                     return n2;
                 }
                 case FLOOR: { // (floor X)
-                    return new node(Math.floor(eval(nArrayList.get(1)).doubleValue()));}
+                    return new node(Math.floor(eval(nArrayList.get(1), env).doubleValue()));}
                 case CEIL: { // (ceil X)
-                    return new node(Math.ceil(eval(nArrayList.get(1)).doubleValue()));}
+                    return new node(Math.ceil(eval(nArrayList.get(1), env).doubleValue()));}
                 case LN: { // (ln X)
-                    return new node(Math.log(eval(nArrayList.get(1)).doubleValue()));}
+                    return new node(Math.log(eval(nArrayList.get(1), env).doubleValue()));}
                 case LOG10: { // (log10 X)
-                    return new node(Math.log10(eval(nArrayList.get(1)).doubleValue()));}
+                    return new node(Math.log10(eval(nArrayList.get(1), env).doubleValue()));}
                 case RAND: { // (rand)
                     return new node(Math.random());}
                 case SET: { // (set SYMBOL VALUE)
-                    node n2 = nArrayList.get(1); 
-                    n2.value = eval(nArrayList.get(2)).value; 
-                    return n2;}
+                    node n2 = nArrayList.get(1);
+                    node v = eval(nArrayList.get(2), env);
+                    env.set(n2.toString(), v);
+                    return v;}
                 case EQ: { // (= X ..) short-circuit, Object.equals()
-                    node first = eval(nArrayList.get(1));
+                    node first = eval(nArrayList.get(1), env);
                     Object firstv = first.value;
                     for (int i = 2; i < nArrayList.size(); i++) {
-                        if (!eval(nArrayList.get(i)).value.equals(firstv)) {return node_false;}
+                        if (!eval(nArrayList.get(i), env).value.equals(firstv)) {return node_false;}
                     }
                     return node_true;}
                 case EQEQ: { // (== X ..) short-circuit                    
-                    node first = eval(nArrayList.get(1));
+                    node first = eval(nArrayList.get(1), env);
                     if (first.value instanceof Integer) {
                         int firstv = first.intValue();                        
                         for (int i = 2; i < nArrayList.size(); i++) {
-                            if (eval(nArrayList.get(i)).intValue() != firstv) {return node_false;}
+                            if (eval(nArrayList.get(i), env).intValue() != firstv) {return node_false;}
                         }
                     }
                     else if (first.value instanceof Long) {
                 	   long firstv = first.longValue();                        
                        for (int i = 2; i < nArrayList.size(); i++) {
-                           if (eval(nArrayList.get(i)).longValue() != firstv) {return node_false;}
+                           if (eval(nArrayList.get(i), env).longValue() != firstv) {return node_false;}
                        }
                     }
                     else {
                         double firstv = first.doubleValue();                        
                         for (int i = 2; i < nArrayList.size(); i++) {
-                            if (eval(nArrayList.get(i)).doubleValue() != firstv) {return node_false;}
+                            if (eval(nArrayList.get(i), env).doubleValue() != firstv) {return node_false;}
                         }
                     }
                     return node_true;}
                 case NOTEQ: { // (!= X ..) short-circuit                    
-                    node first = eval(nArrayList.get(1));
+                    node first = eval(nArrayList.get(1), env);
                     if (first.value instanceof Integer) {
                         int firstv = first.intValue();                        
                         for (int i = 2; i < nArrayList.size(); i++) {
-                            if (eval(nArrayList.get(i)).intValue() == firstv) {return node_false;}
+                            if (eval(nArrayList.get(i), env).intValue() == firstv) {return node_false;}
                         }
                     }
                     else if (first.value instanceof Long) {
                 	   long firstv = first.longValue();                        
                        for (int i = 2; i < nArrayList.size(); i++) {
-                           if (eval(nArrayList.get(i)).longValue() == firstv) {return node_false;}
+                           if (eval(nArrayList.get(i), env).longValue() == firstv) {return node_false;}
                        }
                     }
                     else {
                         double firstv = first.doubleValue();                        
                         for (int i = 2; i < nArrayList.size(); i++) {
-                            if (eval(nArrayList.get(i)).doubleValue() == firstv) {return node_false;}
+                            if (eval(nArrayList.get(i), env).doubleValue() == firstv) {return node_false;}
                         }
                     }
                     return node_true;}
                 case LT: { // (< X Y)
-                    node first = eval(nArrayList.get(1));
-                    node second = eval(nArrayList.get(2));
+                    node first = eval(nArrayList.get(1), env);
+                    node second = eval(nArrayList.get(2), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() < second.intValue());
                     }
@@ -814,8 +706,8 @@ public class paren {
                         return new node(first.doubleValue() < second.doubleValue());
                     }}
                 case GT: { // (> X Y)
-                    node first = eval(nArrayList.get(1));
-                    node second = eval(nArrayList.get(2));
+                    node first = eval(nArrayList.get(1), env);
+                    node second = eval(nArrayList.get(2), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() > second.intValue());
                     }
@@ -826,8 +718,8 @@ public class paren {
                         return new node(first.doubleValue() > second.doubleValue());
                     }}
                 case LTE: { // (<= X Y)
-                    node first = eval(nArrayList.get(1));
-                    node second = eval(nArrayList.get(2));
+                    node first = eval(nArrayList.get(1), env);
+                    node second = eval(nArrayList.get(2), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() <= second.intValue());
                     }
@@ -838,8 +730,8 @@ public class paren {
                         return new node(first.doubleValue() <= second.doubleValue());
                     }}
                 case GTE: { // (>= X Y)
-                    node first = eval(nArrayList.get(1));
-                    node second = eval(nArrayList.get(2));
+                    node first = eval(nArrayList.get(1), env);
+                    node second = eval(nArrayList.get(2), env);
                     if (first.value instanceof Integer) {
                         return new node(first.intValue() >= second.intValue());
                     }
@@ -851,48 +743,49 @@ public class paren {
                     }}
                 case ANDAND: { // (&& X ..) short-circuit
                     for (int i = 1; i < nArrayList.size(); i++) {
-                        if (!eval(nArrayList.get(i)).booleanValue()) {return node_false;}
+                        if (!eval(nArrayList.get(i), env).booleanValue()) {return node_false;}
                     }
                     return node_true;}
                 case OROR: { // (|| X ..) short-circuit
                     for (int i = 1; i < nArrayList.size(); i++) {
-                        if (eval(nArrayList.get(i)).booleanValue()) {return node_true;}
+                        if (eval(nArrayList.get(i), env).booleanValue()) {return node_true;}
                     }
                     return node_false;}
                 case NOT: { // (! X)
-                    return new node(!(eval(nArrayList.get(1)).booleanValue()));}
+                    return new node(!(eval(nArrayList.get(1), env).booleanValue()));}
                 case IF: { // (if CONDITION THEN_EXPR ELSE_EXPR)
                     node cond = nArrayList.get(1);
-                    if (eval(cond).booleanValue()) {
-                        return eval(nArrayList.get(2));
+                    if (eval(cond, env).booleanValue()) {
+                        return eval(nArrayList.get(2), env);
                     }
                     else {
-                        return eval(nArrayList.get(3));
+                        return eval(nArrayList.get(3), env);
                     }}
                 case WHEN: { // (when CONDITION EXPR ..)
                     node cond = nArrayList.get(1);
-                    if (eval(cond).booleanValue()) {
+                    if (eval(cond, env).booleanValue()) {
                         int len = nArrayList.size();
                         for (int i = 2; i < len - 1; i++) {
-                            eval(nArrayList.get(i));
+                            eval(nArrayList.get(i), env);
                         }
-                        return eval(nArrayList.get(len - 1)); // returns last EXPR
+                        return eval(nArrayList.get(len - 1), env); // returns last EXPR
                     }
-                    return new node();}
+                    return node_null;}
                 case FOR: // (for SYMBOL START END STEP EXPR ..)
                     {
-                        node start = eval(nArrayList.get(2));
+                        node start = eval(nArrayList.get(2), env);
                         int len = nArrayList.size();
                         if (start.value instanceof Integer) {                            
-                            int last = eval(nArrayList.get(3)).intValue();
-                            int step = eval(nArrayList.get(4)).intValue();                            
+                            int last = eval(nArrayList.get(3), env).intValue();
+                            int step = eval(nArrayList.get(4), env).intValue();                            
                             int a = start.intValue();
-                            node na = nArrayList.get(1);
+                            //node na = nArrayList.get(1);
+                            node na = env.set(nArrayList.get(1).toString(), new node(a));
                             if (step >= 0) {
                                 for (; a <= last; a += step) {
                                     na.value = a;
                                     for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i));
+                                        eval(nArrayList.get(i), env);
                                     }
                                 }
                             }
@@ -900,21 +793,22 @@ public class paren {
                                 for (; a >= last; a += step) {
                                     na.value = a;
                                     for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i));
+                                        eval(nArrayList.get(i), env);
                                     }
                                 }
                             }
                         }
                         else if (start.value instanceof Long) {
-                            long last = eval(nArrayList.get(3)).longValue();
-                            long step = eval(nArrayList.get(4)).longValue();                            
+                            long last = eval(nArrayList.get(3), env).longValue();
+                            long step = eval(nArrayList.get(4), env).longValue();                            
                             long a = start.longValue();
-                            node na = nArrayList.get(1);
+                            //node na = nArrayList.get(1);
+                            node na = env.set(nArrayList.get(1).toString(), new node(a));
                             if (step >= 0) {
                                 for (; a <= last; a += step) {
                                     na.value = a;
                                     for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i));
+                                        eval(nArrayList.get(i), env);
                                     }
                                 }
                             }
@@ -922,21 +816,22 @@ public class paren {
                                 for (; a >= last; a += step) {
                                     na.value = a;
                                     for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i));
+                                        eval(nArrayList.get(i), env);
                                     }
                                 }
                             }
                         }
                         else {
-                            double last = eval(nArrayList.get(3)).doubleValue();
-                            double step = eval(nArrayList.get(4)).doubleValue();                            
+                            double last = eval(nArrayList.get(3), env).doubleValue();
+                            double step = eval(nArrayList.get(4), env).doubleValue();                            
                             double a = start.doubleValue();                            
-                            node na = nArrayList.get(1);
+                            //node na = nArrayList.get(1);
+                            node na = env.set(nArrayList.get(1).toString(), new node(a));
                             if (step >= 0) {
                                 for (; a <= last; a += step) {
                                     na.value = a;
                                     for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i));
+                                        eval(nArrayList.get(i), env);
                                     }
                                 }
                             }
@@ -944,77 +839,85 @@ public class paren {
                                 for (; a >= last; a += step) {
                                     na.value = a;
                                     for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i));
+                                        eval(nArrayList.get(i), env);
                                     }
                                 }
                             }
                         }
-                        return new node();
+                        return node_null;
                     }
                 case WHILE: { // (while CONDITION EXPR ..)
                     node cond = nArrayList.get(1);
                     int len = nArrayList.size();
-                    while (eval(cond).booleanValue()) {
+                    while (eval(cond, env).booleanValue()) {
                         for (int i = 2; i < len; i++) {
-                            eval(nArrayList.get(i));
+                            eval(nArrayList.get(i), env);
                         }
                     }
-                    return new node(); }
+                    return node_null; }
                 case STRLEN: { // (strlen X)
-                    return new node(eval(nArrayList.get(1)).stringValue().length());}
+                    return new node(eval(nArrayList.get(1), env).stringValue().length());}
                 case STRCAT: { // (strcat X ..)
                     int len = nArrayList.size();
                     if (len <= 1) return new node("");
-                    node first = eval(nArrayList.get(1));
+                    node first = eval(nArrayList.get(1), env);
                     String acc = first.stringValue();
                     for (int i = 2; i < nArrayList.size(); i++) {
-                        acc += eval(nArrayList.get(i)).stringValue();
+                        acc += eval(nArrayList.get(i), env).stringValue();
                     }
                     return new node(acc);}
                 case CHAR_AT: { // (char-at X POSITION)
-                    return new node((int) eval(nArrayList.get(1)).stringValue().charAt(eval(nArrayList.get(2)).intValue()));}
+                    return new node((int) eval(nArrayList.get(1), env).stringValue().charAt(eval(nArrayList.get(2), env).intValue()));}
                 case CHR: { // (chr X)                    
                     char[] temp = {0};
-                    temp[0] = (char) eval(nArrayList.get(1)).intValue();
+                    temp[0] = (char) eval(nArrayList.get(1), env).intValue();
                     return new node(new String(temp));}
                 case STRING: { // (string X)
-                    return new node(eval(nArrayList.get(1)).stringValue());}
+                    return new node(eval(nArrayList.get(1), env).stringValue());}
                 case DOUBLE: { // (double X)
-                    return new node(eval(nArrayList.get(1)).doubleValue());}
+                    return new node(eval(nArrayList.get(1), env).doubleValue());}
                 case INT: { // (int X)
-                    return new node(eval(nArrayList.get(1)).intValue());}
+                    return new node(eval(nArrayList.get(1), env).intValue());}
                 case LONG: { // (long X)
-                    return new node(eval(nArrayList.get(1)).longValue());}                
+                    return new node(eval(nArrayList.get(1), env).longValue());}                
                 case READ_STRING: { // (read-string X)
-                    return new node(parse(eval(nArrayList.get(1)).stringValue()).get(0).value);}
+                    return new node(parse(eval(nArrayList.get(1), env).stringValue()).get(0).value);}
                 case TYPE: { // (type X)
-                    return new node(eval(nArrayList.get(1)).type());}
+                    return new node(eval(nArrayList.get(1), env).type());}
                 case EVAL: { // (eval X)
-                    return new node(eval(compile(eval(nArrayList.get(1)), global_env)).value);}
+                    return new node(eval(eval(nArrayList.get(1), env), env).value);}
                 case QUOTE: { // (quote X)
                     return nArrayList.get(1);}
-                case FN: { // (fn (ARGUMENT ..) BODY) => lexical closure
-                    return n;}                    
+                case FN: {
+                    // anonymous function. lexical scoping
+                    // (fn (ARGUMENT ..) BODY ..)                    
+                    ArrayList<node> r = new ArrayList<node>();
+                    r.add(func);
+                    
+                    for (int i=1; i<nArrayList.size(); i++) {
+                        r.add(nArrayList.get(i));
+                    }
+                    return new node(new fn(r, env));}                 
                 case LIST: { // (list X ..)
                     ArrayList<node> ret = new ArrayList<node>();
                     for (int i = 1; i < nArrayList.size(); i++) {
-                        ret.add(eval(nArrayList.get(i)));
+                        ret.add(eval(nArrayList.get(i), env));
                     }
                     return new node(ret);}
                 case APPLY: { // (apply FUNC LIST)
                     ArrayList<node> expr = new ArrayList<node>();
-                    node f = eval(nArrayList.get(1));
+                    node f = eval(nArrayList.get(1), env);
                     expr.add(f);
-                    ArrayList<node> lst = eval(nArrayList.get(2)).arrayListValue();
+                    ArrayList<node> lst = eval(nArrayList.get(2), env).arrayListValue();
                     for (int i = 0; i < lst.size(); i++) {
                         expr.add(lst.get(i));
                     }                    
-                    return eval(new node(expr));
+                    return eval(new node(expr), env);
                 }
                 case FOLD: { // (fold FUNC LIST)
-                    node f = eval(nArrayList.get(1));
-                    ArrayList<node> lst = eval(nArrayList.get(2)).arrayListValue();
-                    node acc = eval(lst.get(0));
+                    node f = eval(nArrayList.get(1), env);
+                    ArrayList<node> lst = eval(nArrayList.get(2), env).arrayListValue();
+                    node acc = eval(lst.get(0), env);
                     ArrayList<node> expr = new ArrayList<node>(); // (FUNC ITEM)
                     expr.add(f);
                     expr.add(null); // first argument
@@ -1022,26 +925,26 @@ public class paren {
                     for (int i = 1; i < lst.size(); i++) {
                         expr.set(1, acc);
                         expr.set(2, lst.get(i));
-                        acc = eval(new node(expr));
+                        acc = eval(new node(expr), env);
                     }
                     return acc;
                 }
                 case MAP: { // (map FUNC LIST)
-                    node f = eval(nArrayList.get(1));
-                    ArrayList<node> lst = eval(nArrayList.get(2)).arrayListValue();
+                    node f = eval(nArrayList.get(1), env);
+                    ArrayList<node> lst = eval(nArrayList.get(2), env).arrayListValue();
                     ArrayList<node> acc = new ArrayList<node>();
                     ArrayList<node> expr = new ArrayList<node>(); // (FUNC ITEM)                       
                     expr.add(f);
                     expr.add(null);
                     for (int i = 0; i < lst.size(); i++) {
                         expr.set(1, lst.get(i));
-                        acc.add(eval(new node(expr)));
+                        acc.add(eval(new node(expr), env));
                     }                    
                     return new node(acc);
                 }
                 case FILTER: { // (filter FUNC LIST)
-                    node f = eval(nArrayList.get(1));
-                    ArrayList<node> lst = eval(nArrayList.get(2)).arrayListValue();
+                    node f = eval(nArrayList.get(1), env);
+                    ArrayList<node> lst = eval(nArrayList.get(2), env).arrayListValue();
                     ArrayList<node> acc = new ArrayList<node>();
                     ArrayList<node> expr = new ArrayList<node>(); // (FUNC ITEM)                    
                     expr.add(f);
@@ -1049,18 +952,18 @@ public class paren {
                     for (int i = 0; i < lst.size(); i++) {
                         node item = lst.get(i);
                         expr.set(1, item);
-                        node ret = eval(new node(expr));
+                        node ret = eval(new node(expr), env);
                         if (ret.booleanValue()) acc.add(item);
                     }                    
                     return new node(acc);
                 }
                 case RANGE: { // (range START END STEP)
-                    node start = eval(nArrayList.get(1));                    
+                    node start = eval(nArrayList.get(1), env);                    
                     ArrayList<node> ret = new ArrayList<node>();
                     if (start.value instanceof Integer) {
-                        int a = eval(nArrayList.get(1)).intValue();
-                        int last = eval(nArrayList.get(2)).intValue();
-                        int step = eval(nArrayList.get(3)).intValue();                        
+                        int a = eval(nArrayList.get(1), env).intValue();
+                        int last = eval(nArrayList.get(2), env).intValue();
+                        int step = eval(nArrayList.get(3), env).intValue();                        
                         if (step >= 0) {
                             for (; a <= last; a += step) {
                                 ret.add(new node(a));}}
@@ -1069,9 +972,9 @@ public class paren {
                                 ret.add(new node(a));}}
                     }
                     else if (start.value instanceof Long) {
-                        long a = eval(nArrayList.get(1)).longValue();
-                        long last = eval(nArrayList.get(2)).longValue();
-                        long step = eval(nArrayList.get(3)).longValue();                        
+                        long a = eval(nArrayList.get(1), env).longValue();
+                        long last = eval(nArrayList.get(2), env).longValue();
+                        long step = eval(nArrayList.get(3), env).longValue();                        
                         if (step >= 0) {
                             for (; a <= last; a += step) {
                                 ret.add(new node(a));}}
@@ -1080,9 +983,9 @@ public class paren {
                                 ret.add(new node(a));}}
                     }
                     else {
-                        double a = eval(nArrayList.get(1)).doubleValue();
-                        double last = eval(nArrayList.get(2)).doubleValue();
-                        double step = eval(nArrayList.get(3)).doubleValue();                        
+                        double a = eval(nArrayList.get(1), env).doubleValue();
+                        double last = eval(nArrayList.get(2), env).doubleValue();
+                        double step = eval(nArrayList.get(3), env).doubleValue();                        
                         if (step >= 0) {
                             for (; a <= last; a += step) {
                                 ret.add(new node(a));}}
@@ -1093,19 +996,19 @@ public class paren {
                     return new node(ret);
                 }
                 case NTH: { // (nth INDEX LIST)
-                    int i = eval(nArrayList.get(1)).intValue();
-                    ArrayList<node> lst = eval(nArrayList.get(2)).arrayListValue();
+                    int i = eval(nArrayList.get(1), env).intValue();
+                    ArrayList<node> lst = eval(nArrayList.get(2), env).arrayListValue();
                     return lst.get(i);}
                 case LENGTH: { // (length LIST)                    
-                    ArrayList<node> lst = eval(nArrayList.get(1)).arrayListValue();
+                    ArrayList<node> lst = eval(nArrayList.get(1), env).arrayListValue();
                     return new node(lst.size());}
                 case BEGIN: { // (begin X ..)                    
                     int last = nArrayList.size() - 1;
-                    if (last <= 0) return new node();
+                    if (last <= 0) return node_null;
                     for (int i = 1; i < last; i++) {
-                        eval(nArrayList.get(i));
+                        eval(nArrayList.get(i), env);
                     }
-                    return eval(nArrayList.get(last));}
+                    return eval(nArrayList.get(last), env);}
                 case DOT: {
                     // Java interoperability
                     // (. CLASS METHOD ARGUMENT ..) ; Java method invocation
@@ -1116,14 +1019,14 @@ public class paren {
                         if (nArrayList.get(1).value instanceof symbol) { // class's static method e.g. (. java.lang.Math floor 1.5)                            
                             cls = Class.forName(className);
                         } else { // object's method e.g. (. "abc" length)
-                            obj = eval(nArrayList.get(1)).value;
+                            obj = eval(nArrayList.get(1), env).value;
                             cls = obj.getClass();
                         }                        
                         Class<?>[] parameterTypes = new Class<?>[nArrayList.size() - 3];
                         ArrayList<Object> parameters = new ArrayList<Object>();                    
                         int last = nArrayList.size() - 1;                        
                         for (int i = 3; i <= last; i++) {
-                        	node a = eval(nArrayList.get(i));
+                        	node a = eval(nArrayList.get(i), env);
                             Object param = a.value;
                             parameters.add(param);
                             Class<?> paramClass;
@@ -1143,7 +1046,7 @@ public class paren {
                         return new node(method.invoke(obj, parameters.toArray()));
                     } catch (Exception e) {                        
                         e.printStackTrace();
-                        return new node();
+                        return node_null;
                     }}
                 case DOTGET: {
                     // Java interoperability
@@ -1155,7 +1058,7 @@ public class paren {
                         if (nArrayList.get(1).value instanceof symbol) { // class's static field e.g. (.get java.lang.Math PI)                            
                             cls = Class.forName(className);
                         } else { // object's method
-                            obj = eval(nArrayList.get(1)).value;
+                            obj = eval(nArrayList.get(1), env).value;
                             cls = obj.getClass();
                         }                        
                         String fieldName = nArrayList.get(2).stringValue();
@@ -1163,7 +1066,7 @@ public class paren {
                         return new node(field.get(cls));
                     } catch (Exception e) {                        
                         e.printStackTrace();
-                        return new node();
+                        return node_null;
                     }}
                 case DOTSET: {
                     // Java interoperability
@@ -1175,17 +1078,17 @@ public class paren {
                         if (nArrayList.get(1).value instanceof symbol) { // class's static field e.g. (.get java.lang.Math PI)                            
                             cls = Class.forName(className);
                         } else { // object's method
-                            obj = eval(nArrayList.get(1)).value;
+                            obj = eval(nArrayList.get(1), env).value;
                             cls = obj.getClass();
                         }                        
                         String fieldName = nArrayList.get(2).stringValue();
                         java.lang.reflect.Field field = cls.getField(fieldName);
-                        Object value = eval(nArrayList.get(3)).value;
+                        Object value = eval(nArrayList.get(3), env).value;
                         field.set(cls, value);
-                        return new node();                        
+                        return node_null;                        
                     } catch (Exception e) {                        
                         e.printStackTrace();
-                        return new node();
+                        return node_null;
                     }}
                 case NEW: {
                     // Java interoperability
@@ -1197,7 +1100,7 @@ public class paren {
                         ArrayList<Object> parameters = new ArrayList<Object>();                    
                         int last = nArrayList.size() - 1;                        
                         for (int i = 2; i <= last; i++) {
-                        	node a = eval(nArrayList.get(i));
+                        	node a = eval(nArrayList.get(i), env);
                             Object param = a.value;
                             parameters.add(param);
                             Class<?> paramClass;
@@ -1216,33 +1119,33 @@ public class paren {
                         return new node(ctor.newInstance(parameters.toArray()));
                     } catch (Exception e) {                        
                         e.printStackTrace();
-                        return new node();
+                        return node_null;
                     }}
                 case PR: // (pr X ..)
                     {                        
                         for (int i = 1; i < nArrayList.size(); i++) {
                             if (i != 1) System.out.print(" ");
-                            System.out.print(eval(nArrayList.get(i)).stringValue());
+                            System.out.print(eval(nArrayList.get(i), env).stringValue());
                         }
-                        return new node();
+                        return node_null;
                     }
                 case PRN: // (prn X ..)
                     {
                         for (int i = 1; i < nArrayList.size(); i++) {
                             if (i != 1) System.out.print(" ");
-                            System.out.print(eval(nArrayList.get(i)).stringValue());
+                            System.out.print(eval(nArrayList.get(i), env).stringValue());
                         }
                         System.out.println();
-                        return new node();
+                        return node_null;
                     }
                 case EXIT: { // (exit X)
                     System.out.println();
-                    System.exit(eval(nArrayList.get(1)).intValue());
-                    return new node(); }
+                    System.exit(eval(nArrayList.get(1), env).intValue());
+                    return node_null; }
                 case SYSTEM: { // (system "notepad" "a.txt") ; run external program
                     ArrayList<String> args = new ArrayList<String>();
                     for (int i = 1; i < nArrayList.size(); i++) {
-                        args.add(eval(nArrayList.get(i)).stringValue());
+                        args.add(eval(nArrayList.get(i), env).stringValue());
                     }
                     ProcessBuilder pb = new ProcessBuilder(args);
                     pb.inheritIO();
@@ -1254,12 +1157,12 @@ public class paren {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    return new node(); 
+                    return node_null; 
                     }
                 case CONS: { // (cons X LST): Returns a new list where x is the first element and lst is the rest.
                     //node x = new node(eval(nArrayList.get(1)).value);
-                    node x = eval(nArrayList.get(1));
-                    ArrayList<node> lst = eval(nArrayList.get(2)).arrayListValue();
+                    node x = eval(nArrayList.get(1), env);
+                    ArrayList<node> lst = eval(nArrayList.get(2), env).arrayListValue();
                     ArrayList<node> r = new ArrayList<node>();
                     r.add(x);
                     for (node n2 : lst) {
@@ -1268,10 +1171,10 @@ public class paren {
                     return new node(r);
                 }
                 case NULLP: { // (null? X): Returns true if X is null.
-                	return new node(eval(nArrayList.get(1)).value == null);
+                	return new node(eval(nArrayList.get(1), env).value == null);
                 }
                 case CAST: { // (cast CLASS X): Returns type-hinted object.
-                	node x = eval(nArrayList.get(2));
+                	node x = eval(nArrayList.get(2), env);
                 	try {
 						x.clazz = Class.forName(nArrayList.get(1).stringValue());
 					} catch (ClassNotFoundException e) {
@@ -1282,38 +1185,39 @@ public class paren {
                 }
                 default: {
                     System.err.println("Not implemented function: [" + func.value.toString() + "]");
-                    return new node();}
+                    return node_null;}
                 } // end switch(found)                
             }
             else {                
                 if (func.value instanceof fn) {
                     // anonymous function application. lexical scoping
-                    // (fn (ARGUMENT ..) BODY ..)
-                    fn f = (fn) func.value;
-                    ArrayList<node> arg_syms = f.def.get(1).arrayListValue();                    
+                    // (fn (ARGUMENT ..) BODY ..)                	                	
+                    fn f = (fn) func.value;                	
+                    ArrayList<node> arg_syms = f.def.get(1).arrayListValue();
+                    environment local_env = new environment(f.outer_env);
                                         
                     int len = arg_syms.size();
                     for (int i=0; i<len; i++) { // assign arguments
                         String k = arg_syms.get(i).stringValue();
-                        node cn = compile(nArrayList.get(i + 1), f.env);                        
-                        node n2 = eval(cn);
-                        f.env.env.put(k, n2);
+                        node n2 = eval(nArrayList.get(i+1), env);
+                        local_env.env.put(k, n2);
                     }
+                    
                     len = f.def.size();
-                    for (int i=2; i<len-1; i++) { // body
-                        eval(compile(f.def.get(i), f.env));
+                    node ret = null;
+                    for (int i=2; i<len; i++) { // body
+                    	ret = eval(f.def.get(i), local_env);
                     }
-                    node ret = eval(compile(f.def.get(len-1), f.env));
                     return ret;
                 }
                 else {
                     System.err.println("Unknown function: [" + func.value.toString() + "]");
-                    return new node();
+                    return node_null;
                 }
             }
         }
         else {
-        	return n.clone();
+        	return n.clone();        	
         }
     }
     
@@ -1321,18 +1225,19 @@ public class paren {
         ArrayList<node> compiled = new ArrayList<node>();
         int last = lst.size() - 1;        
         for (int i = 0; i <= last; i++) {
-            compiled.add(compile(lst.get(i), global_env));
+            compiled.add(compile(lst.get(i)));
         }
         return compiled;
     }    
 
     node eval_all(ArrayList<node> lst) {        
         int last = lst.size() - 1;
-        if (last < 0) return new node();
-        for (int i = 0; i < last; i++) {
-            eval(lst.get(i));
+        if (last < 0) return node_null;
+        node ret = null;
+        for (int i = 0; i <= last; i++) {
+            ret = eval(lst.get(i), global_env);
         }
-        return eval(lst.get(last));
+        return ret;
     }
         
     public node eval_string(String s) {

@@ -250,7 +250,7 @@ public class parenjTest {
 ```
 (set maxP 0)
 (for i 100 999 1
-  (for j 100 999 1	
+  (for j i 999 1	
     (set p (* i j))
     (set ps (string p))
     (set len (strlen ps))
