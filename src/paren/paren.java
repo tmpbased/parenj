@@ -26,14 +26,13 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.7.1";
+	public static final String VERSION = "1.7.2";
     public paren() {
         init();
     }
     
     public static class node implements Cloneable {
         Object value;
-        boolean isData;
         Class<?> clazz = null; // type hint
         
         node() {}
@@ -42,7 +41,6 @@ public class paren {
         }
         protected node clone() {
         	node r = new node(this.value);
-        	r.isData = this.isData;
         	r.clazz = this.clazz;
         	return r;
         }
@@ -411,7 +409,6 @@ public class paren {
 
     node compile(node n) {    	
         if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
-        	if (n.isData) return n;
             ArrayList<node> nArrayList = n.arrayListValue();                
             if (nArrayList.size() == 0) return node_null;
             node func = compile(nArrayList.get(0));
@@ -445,7 +442,6 @@ public class paren {
     		return r;
     	}
     	else if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
-        	if (n.isData) return n.clone();;
             ArrayList<node> nArrayList = n.arrayListValue();                
             if (nArrayList.size() == 0) return node_null;
             node func = eval(nArrayList.get(0), env);
