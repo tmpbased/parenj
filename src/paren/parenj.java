@@ -1,7 +1,5 @@
 package paren;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 // (C) 2013 Kim, Taegyoon
 // Parenj: The Paren Programming Language written in Java
@@ -33,8 +31,7 @@ public class parenj {
         for (String fileName : args) {
             paren p = new paren();
             try {
-                String code = new String(Files.readAllBytes(Paths.get(fileName)));
-                p.eval_string(code);
+        		p.eval_string(paren.slurp(fileName));
             } catch (IOException e) {
                 e.printStackTrace();
             }

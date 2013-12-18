@@ -16,6 +16,9 @@
 // Version 1.7.1: improved function call
 package paren;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -26,7 +29,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.7.4";
+	public static final String VERSION = "1.7.5";
     public paren() {
         init();
     }
@@ -45,13 +48,25 @@ public class paren {
         	return r;
         }
         int intValue() {
-            return ((Number)value).intValue();
+        	if (value instanceof Number) {
+        		return ((Number)value).intValue();
+        	} else {
+        		return Integer.parseInt(stringValue());
+        	}
         }
         double doubleValue() {
-            return ((Number)value).doubleValue();
+        	if (value instanceof Number) {
+        		return ((Number)value).doubleValue();
+        	} else {
+        		return Double.parseDouble(stringValue());
+        	}
         }
         long longValue() {
-            return ((Number)value).longValue();
+        	if (value instanceof Number) {
+        		return ((Number)value).longValue();
+        	} else {
+        		return Long.parseLong(stringValue());
+        	}
         }
         boolean booleanValue() {
             return (Boolean) value;
@@ -256,7 +271,7 @@ public class paren {
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
         EVAL, QUOTE, FN, LIST, APPLY, FOLD, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET, NEW,
-        PR, PRN, EXIT, SYSTEM, CONS, LONG, NULLP, CAST, DEFMACRO
+        PR, PRN, EXIT, SYSTEM, CONS, LONG, NULLP, CAST, DEFMACRO, READ_LINE, SLURP, SPIT
     }
     
     environment global_env = new environment(); // variables. compile-time
@@ -354,6 +369,9 @@ public class paren {
         global_env.env.put("null?", new node(builtin.NULLP));
         global_env.env.put("cast", new node(builtin.CAST));
         global_env.env.put("defmacro", new node(builtin.DEFMACRO));
+        global_env.env.put("read-line", new node(builtin.READ_LINE));
+        global_env.env.put("slurp", new node(builtin.SLURP));
+        global_env.env.put("spit", new node(builtin.SPIT));
 
         eval_string("(defmacro setfn (name ...) (set name (fn ...)))");
 		eval_string("(defmacro defn (...) (setfn ...))");        
@@ -1175,6 +1193,27 @@ public class paren {
 					}
                 	return x;
                 }
+                case READ_LINE: { // (read-line)
+                	BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+                	try {
+						return new node(br.readLine());
+					} catch (IOException e) {
+						return node_null;
+					}
+                }
+                case SLURP: { // (slurp FILENAME)
+					String filename = eval(nArrayList.get(1), env).stringValue();
+					try {
+						return new node(slurp(filename));
+					} catch (IOException e) {
+						return node_null;
+					}
+                }
+                case SPIT: { // (spit FILENAME STRING)
+                	String filename = eval(nArrayList.get(1), env).stringValue();
+                	String str = eval(nArrayList.get(2), env).stringValue();
+                	return new node(spit(filename, str));
+                }
                 default: {
                     System.err.println("Not implemented function: [" + func.value.toString() + "]");
                     return node_null;}
@@ -1272,5 +1311,23 @@ public class paren {
                 e.printStackTrace();
             }
         }
+    }
+    
+    // extracts characters from filename
+    public static String slurp(String fileName) throws IOException {
+    	return new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(fileName)));
+    }
+    
+ // Opposite of slurp. Writes str to filename.
+    public static int spit(String fileName, String str) {
+		BufferedWriter bw;
+		try {
+			bw = new BufferedWriter(new FileWriter(fileName));
+			bw.write(str);
+			bw.close();
+			return str.length();
+		} catch (IOException e) {
+			return -1;
+		}
     }
 }
