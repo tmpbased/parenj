@@ -35,8 +35,6 @@ Predefined Symbols:
 
 Macros:
  defn setfn
-Etc.:
- (list) "string" ; end-of-line comment
 ```
 
 ## Files ##
@@ -47,6 +45,12 @@ Etc.:
 ### Hello, World! ###
 ```
 (prn "Hello, World!")
+```
+
+### Comment ###
+```
+# comment
+; comment
 ```
 
 ### Function ###

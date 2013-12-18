@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.7.3";
+	public static final String VERSION = "1.7.4";
     public paren() {
         init();
     }
@@ -154,7 +154,7 @@ public class paren {
                 if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
                     emit();
                 }
-                else if (c == ';') { // end-of-line comment
+                else if (c == ';' || c == '#') { // end-of-line comment
                     emit();
                     do pos++; while (pos <= last && s.charAt(pos) != '\n');
                 }
@@ -280,10 +280,6 @@ public class paren {
         System.out.println(
                 "Macros:");
         print_collection(macros.keySet());
-
-        System.out.println(
-            "Etc.:\n" +
-            " (list) \"string\" ; end-of-line comment");
     }    
 
     void init() {
