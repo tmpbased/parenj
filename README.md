@@ -30,9 +30,9 @@ Predefined Symbols:
  PI ^ apply begin cast ceil char-at chr cons dec
  defmacro double eval exit false filter floor fn fold for
  if inc int length list ln log10 long map new
- nth null null? pr prn quote rand range read-string set
- sqrt strcat string strlen system true type when while ||
-
+ nth null null? pr prn quote rand range read-line read-string
+ set slurp spit sqrt strcat string strlen system true type
+ when while ||
 Macros:
  defn setfn
 ```
