@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.7.6";
+	public static final String VERSION = "1.7.7";
     public paren() {
         init();
     }
@@ -103,11 +103,26 @@ public class paren {
     static final node node_null = new node();
 
     static class symbol {
-        String name;
-        symbol(String name) {this.name = name;}
-        public String toString() {
-            return name;
-        }
+		public static HashMap<String, Integer> symcode = new HashMap<String, Integer>();
+		public static ArrayList<String> symname = new ArrayList<String>();
+		public int code;
+		public static int ToCode(String name) {
+			Integer r = symcode.get(name);
+			if (r == null) {
+				r = symcode.size();
+				symcode.put(name, r);
+				symname.add(name);
+			}
+			return r;
+		}
+
+		public symbol(String name) {
+			code = ToCode(name);
+		}
+
+		public String toString() {
+			return symname.get(code);
+		}
     }
     
     static class fn { // anonymous function
@@ -123,18 +138,19 @@ public class paren {
     }
     
     static class environment {
-        HashMap<String, node> env = new HashMap<String, node>();
+        //HashMap<String, node> env = new HashMap<String, node>();
+    	HashMap<Integer, node> env = new HashMap<Integer, node>();
         environment outer;
         environment() {this.outer = null;}
         environment(environment outer) {this.outer = outer;}
-        node get(String name) {
-            node found = env.get(name);            
+        node get(int code) {
+            node found = env.get(code);            
             if (found != null) {
                 return found;
             }
             else {
                 if (outer != null) {
-                    return outer.get(name);
+                    return outer.get(code);
                 }
                 else {
                     return null;
@@ -142,8 +158,8 @@ public class paren {
             }            
         }
         
-        node set(String name, node v) {
-        	env.put(name, v);
+        node set(int code, node v) {
+        	env.put(code, v);
         	return v;
         }
     }
@@ -287,91 +303,95 @@ public class paren {
     }
 
     public void print_logo() {
-        System.out.println(
-            "Parenj " + VERSION + " (C) 2013 Kim, Taegyoon");
-        System.out.println(
-            "Predefined Symbols:");
-        print_collection(global_env.env.keySet());
-        System.out.println(
-                "Macros:");
+        System.out.println("Parenj " + VERSION + " (C) 2013 Kim, Taegyoon");
+        System.out.println("Predefined Symbols:");
+        ArrayList<String> r = new ArrayList<String>(global_env.env.keySet().size());
+        for (int x : global_env.env.keySet()) {
+        	r.add(symbol.symname.get(x));        	        	
+        }
+        for (String x : new TreeSet<String>(r)) {
+        	System.out.print(" " + x);
+        }
+        System.out.println();
+        System.out.println("Macros:");
         print_collection(macros.keySet());
     }    
 
     void init() {
-        global_env.env.put("true", node_true);
-        global_env.env.put("false", node_false);
-        global_env.env.put("E", new node(2.71828182845904523536));
-        global_env.env.put("PI", new node(3.14159265358979323846));
-        global_env.env.put("null", new node());
+        global_env.env.put(symbol.ToCode("true"), node_true);
+        global_env.env.put(symbol.ToCode("false"), node_false);
+        global_env.env.put(symbol.ToCode("E"), new node(2.71828182845904523536));
+        global_env.env.put(symbol.ToCode("PI"), new node(3.14159265358979323846));
+        global_env.env.put(symbol.ToCode("null"), new node());
 
-        global_env.env.put("+", new node(builtin.PLUS));
-        global_env.env.put("-", new node(builtin.MINUS));
-        global_env.env.put("*", new node(builtin.MUL));
-        global_env.env.put("/", new node(builtin.DIV));
-        global_env.env.put("^", new node(builtin.CARET));
-        global_env.env.put("%", new node(builtin.PERCENT));
-        global_env.env.put("sqrt", new node(builtin.SQRT));
-        global_env.env.put("inc", new node(builtin.INC));
-        global_env.env.put("dec", new node(builtin.DEC));
-        global_env.env.put("++", new node(builtin.PLUSPLUS));
-        global_env.env.put("--", new node(builtin.MINUSMINUS));
-        global_env.env.put("floor", new node(builtin.FLOOR));
-        global_env.env.put("ceil", new node(builtin.CEIL));
-        global_env.env.put("ln", new node(builtin.LN));
-        global_env.env.put("log10", new node(builtin.LOG10));
-        global_env.env.put("rand", new node(builtin.RAND));
-        global_env.env.put("=", new node(builtin.EQ));
-        global_env.env.put("==", new node(builtin.EQEQ));
-        global_env.env.put("!=", new node(builtin.NOTEQ));
-        global_env.env.put("<", new node(builtin.LT));
-        global_env.env.put(">", new node(builtin.GT));
-        global_env.env.put("<=", new node(builtin.LTE));
-        global_env.env.put(">=", new node(builtin.GTE));
-        global_env.env.put("&&", new node(builtin.ANDAND));
-        global_env.env.put("||", new node(builtin.OROR));
-        global_env.env.put("!", new node(builtin.NOT));
-        global_env.env.put("if", new node(builtin.IF));
-        global_env.env.put("when", new node(builtin.WHEN));
-        global_env.env.put("for", new node(builtin.FOR));
-        global_env.env.put("while", new node(builtin.WHILE));
-        global_env.env.put("strlen", new node(builtin.STRLEN));
-        global_env.env.put("strcat", new node(builtin.STRCAT));
-        global_env.env.put("char-at", new node(builtin.CHAR_AT));
-        global_env.env.put("chr", new node(builtin.CHR));
-        global_env.env.put("int", new node(builtin.INT));
-        global_env.env.put("double", new node(builtin.DOUBLE));
-        global_env.env.put("string", new node(builtin.STRING));
-        global_env.env.put("read-string", new node(builtin.READ_STRING));
-        global_env.env.put("type", new node(builtin.TYPE));
-        global_env.env.put("eval", new node(builtin.EVAL));
-        global_env.env.put("quote", new node(builtin.QUOTE));
-        global_env.env.put("fn", new node(builtin.FN));
-        global_env.env.put("list", new node(builtin.LIST));
-        global_env.env.put("apply", new node(builtin.APPLY));
-        global_env.env.put("fold", new node(builtin.FOLD));
-        global_env.env.put("map", new node(builtin.MAP));
-        global_env.env.put("filter", new node(builtin.FILTER));
-        global_env.env.put("range", new node(builtin.RANGE));
-        global_env.env.put("nth", new node(builtin.NTH));
-        global_env.env.put("length", new node(builtin.LENGTH));
-        global_env.env.put("begin", new node(builtin.BEGIN));
-        global_env.env.put(".", new node(builtin.DOT));
-        global_env.env.put(".get", new node(builtin.DOTGET));
-        global_env.env.put(".set", new node(builtin.DOTSET));
-        global_env.env.put("new", new node(builtin.NEW));
-        global_env.env.put("set", new node(builtin.SET));
-        global_env.env.put("pr", new node(builtin.PR));
-        global_env.env.put("prn", new node(builtin.PRN));
-        global_env.env.put("exit", new node(builtin.EXIT));
-        global_env.env.put("system", new node(builtin.SYSTEM));
-        global_env.env.put("cons", new node(builtin.CONS));
-        global_env.env.put("long", new node(builtin.LONG));
-        global_env.env.put("null?", new node(builtin.NULLP));
-        global_env.env.put("cast", new node(builtin.CAST));
-        global_env.env.put("defmacro", new node(builtin.DEFMACRO));
-        global_env.env.put("read-line", new node(builtin.READ_LINE));
-        global_env.env.put("slurp", new node(builtin.SLURP));
-        global_env.env.put("spit", new node(builtin.SPIT));
+        global_env.env.put(symbol.ToCode("+"), new node(builtin.PLUS));
+        global_env.env.put(symbol.ToCode("-"), new node(builtin.MINUS));
+        global_env.env.put(symbol.ToCode("*"), new node(builtin.MUL));
+        global_env.env.put(symbol.ToCode("/"), new node(builtin.DIV));
+        global_env.env.put(symbol.ToCode("^"), new node(builtin.CARET));
+        global_env.env.put(symbol.ToCode("%"), new node(builtin.PERCENT));
+        global_env.env.put(symbol.ToCode("sqrt"), new node(builtin.SQRT));
+        global_env.env.put(symbol.ToCode("inc"), new node(builtin.INC));
+        global_env.env.put(symbol.ToCode("dec"), new node(builtin.DEC));
+        global_env.env.put(symbol.ToCode("++"), new node(builtin.PLUSPLUS));
+        global_env.env.put(symbol.ToCode("--"), new node(builtin.MINUSMINUS));
+        global_env.env.put(symbol.ToCode("floor"), new node(builtin.FLOOR));
+        global_env.env.put(symbol.ToCode("ceil"), new node(builtin.CEIL));
+        global_env.env.put(symbol.ToCode("ln"), new node(builtin.LN));
+        global_env.env.put(symbol.ToCode("log10"), new node(builtin.LOG10));
+        global_env.env.put(symbol.ToCode("rand"), new node(builtin.RAND));
+        global_env.env.put(symbol.ToCode("="), new node(builtin.EQ));
+        global_env.env.put(symbol.ToCode("=="), new node(builtin.EQEQ));
+        global_env.env.put(symbol.ToCode("!="), new node(builtin.NOTEQ));
+        global_env.env.put(symbol.ToCode("<"), new node(builtin.LT));
+        global_env.env.put(symbol.ToCode(">"), new node(builtin.GT));
+        global_env.env.put(symbol.ToCode("<="), new node(builtin.LTE));
+        global_env.env.put(symbol.ToCode(">="), new node(builtin.GTE));
+        global_env.env.put(symbol.ToCode("&&"), new node(builtin.ANDAND));
+        global_env.env.put(symbol.ToCode("||"), new node(builtin.OROR));
+        global_env.env.put(symbol.ToCode("!"), new node(builtin.NOT));
+        global_env.env.put(symbol.ToCode("if"), new node(builtin.IF));
+        global_env.env.put(symbol.ToCode("when"), new node(builtin.WHEN));
+        global_env.env.put(symbol.ToCode("for"), new node(builtin.FOR));
+        global_env.env.put(symbol.ToCode("while"), new node(builtin.WHILE));
+        global_env.env.put(symbol.ToCode("strlen"), new node(builtin.STRLEN));
+        global_env.env.put(symbol.ToCode("strcat"), new node(builtin.STRCAT));
+        global_env.env.put(symbol.ToCode("char-at"), new node(builtin.CHAR_AT));
+        global_env.env.put(symbol.ToCode("chr"), new node(builtin.CHR));
+        global_env.env.put(symbol.ToCode("int"), new node(builtin.INT));
+        global_env.env.put(symbol.ToCode("double"), new node(builtin.DOUBLE));
+        global_env.env.put(symbol.ToCode("string"), new node(builtin.STRING));
+        global_env.env.put(symbol.ToCode("read-string"), new node(builtin.READ_STRING));
+        global_env.env.put(symbol.ToCode("type"), new node(builtin.TYPE));
+        global_env.env.put(symbol.ToCode("eval"), new node(builtin.EVAL));
+        global_env.env.put(symbol.ToCode("quote"), new node(builtin.QUOTE));
+        global_env.env.put(symbol.ToCode("fn"), new node(builtin.FN));
+        global_env.env.put(symbol.ToCode("list"), new node(builtin.LIST));
+        global_env.env.put(symbol.ToCode("apply"), new node(builtin.APPLY));
+        global_env.env.put(symbol.ToCode("fold"), new node(builtin.FOLD));
+        global_env.env.put(symbol.ToCode("map"), new node(builtin.MAP));
+        global_env.env.put(symbol.ToCode("filter"), new node(builtin.FILTER));
+        global_env.env.put(symbol.ToCode("range"), new node(builtin.RANGE));
+        global_env.env.put(symbol.ToCode("nth"), new node(builtin.NTH));
+        global_env.env.put(symbol.ToCode("length"), new node(builtin.LENGTH));
+        global_env.env.put(symbol.ToCode("begin"), new node(builtin.BEGIN));
+        global_env.env.put(symbol.ToCode("."), new node(builtin.DOT));
+        global_env.env.put(symbol.ToCode(".get"), new node(builtin.DOTGET));
+        global_env.env.put(symbol.ToCode(".set"), new node(builtin.DOTSET));
+        global_env.env.put(symbol.ToCode("new"), new node(builtin.NEW));
+        global_env.env.put(symbol.ToCode("set"), new node(builtin.SET));
+        global_env.env.put(symbol.ToCode("pr"), new node(builtin.PR));
+        global_env.env.put(symbol.ToCode("prn"), new node(builtin.PRN));
+        global_env.env.put(symbol.ToCode("exit"), new node(builtin.EXIT));
+        global_env.env.put(symbol.ToCode("system"), new node(builtin.SYSTEM));
+        global_env.env.put(symbol.ToCode("cons"), new node(builtin.CONS));
+        global_env.env.put(symbol.ToCode("long"), new node(builtin.LONG));
+        global_env.env.put(symbol.ToCode("null?"), new node(builtin.NULLP));
+        global_env.env.put(symbol.ToCode("cast"), new node(builtin.CAST));
+        global_env.env.put(symbol.ToCode("defmacro"), new node(builtin.DEFMACRO));
+        global_env.env.put(symbol.ToCode("read-line"), new node(builtin.READ_LINE));
+        global_env.env.put(symbol.ToCode("slurp"), new node(builtin.SLURP));
+        global_env.env.put(symbol.ToCode("spit"), new node(builtin.SPIT));
 
         eval_string("(defmacro setfn (name ...) (set name (fn ...)))");
 		eval_string("(defmacro defn (...) (setfn ...))");        
@@ -448,7 +468,8 @@ public class paren {
         
     node eval(node n, environment env) {
     	if (n.value instanceof symbol) {
-    		node r = env.get(n.toString());
+    		//node r = env.get(n.toString());
+    		node r = env.get(((symbol)n.value).code);
     		if (r == null) {
     			System.err.println("Unknown variable: " + n.toString());
     			return node_null;
@@ -611,7 +632,8 @@ public class paren {
                     int len = nArrayList.size();
                     if (len <= 1) return node_0;
                     //node n2 = nArrayList.get(1);
-                    node n2 = env.get(nArrayList.get(1).toString());
+                    //node n2 = env.get(nArrayList.get(1).toString());
+                    node n2 = env.get(((symbol)nArrayList.get(1).value).code);
                     if (n2.value instanceof Integer) {
                         n2.value = n2.intValue() + 1;
                     }
@@ -627,7 +649,8 @@ public class paren {
                     int len = nArrayList.size();
                     if (len <= 1) return node_0;                    
                     //node n2 = nArrayList.get(1);
-                    node n2 = env.get(nArrayList.get(1).toString());
+                    //node n2 = env.get(nArrayList.get(1).toString());
+                    node n2 = env.get(((symbol)nArrayList.get(1).value).code);
                     if (n2.value instanceof Integer) {
                         n2.value = n2.intValue() - 1;
                     }
@@ -652,7 +675,8 @@ public class paren {
                 case SET: { // (set SYMBOL VALUE)
                     node n2 = nArrayList.get(1);
                     node v = eval(nArrayList.get(2), env);
-                    env.set(n2.toString(), v);
+                    //env.set(n2.toString(), v);
+                    env.set(((symbol)n2.value).code, v);
                     return v;}
                 case EQ: { // (= X ..) short-circuit, Object.equals()
                     node first = eval(nArrayList.get(1), env);
@@ -790,7 +814,8 @@ public class paren {
                             int step = eval(nArrayList.get(4), env).intValue();                            
                             int a = start.intValue();
                             //node na = nArrayList.get(1);
-                            node na = env.set(nArrayList.get(1).toString(), new node(a));
+                            //node na = env.set(nArrayList.get(1).toString(), new node(a));
+                            node na = env.set(((symbol)nArrayList.get(1).value).code, new node(a));
                             if (step >= 0) {
                                 for (; a <= last; a += step) {
                                     na.value = a;
@@ -813,7 +838,7 @@ public class paren {
                             long step = eval(nArrayList.get(4), env).longValue();                            
                             long a = start.longValue();
                             //node na = nArrayList.get(1);
-                            node na = env.set(nArrayList.get(1).toString(), new node(a));
+                            node na = env.set(((symbol)nArrayList.get(1).value).code, new node(a));
                             if (step >= 0) {
                                 for (; a <= last; a += step) {
                                     na.value = a;
@@ -836,7 +861,7 @@ public class paren {
                             double step = eval(nArrayList.get(4), env).doubleValue();                            
                             double a = start.doubleValue();                            
                             //node na = nArrayList.get(1);
-                            node na = env.set(nArrayList.get(1).toString(), new node(a));
+                            node na = env.set(((symbol)nArrayList.get(1).value).code, new node(a));
                             if (step >= 0) {
                                 for (; a <= last; a += step) {
                                     na.value = a;
@@ -1229,9 +1254,11 @@ public class paren {
                                         
                     int len = arg_syms.size();
                     for (int i=0; i<len; i++) { // assign arguments
-                        String k = arg_syms.get(i).stringValue();
+//                        String k = arg_syms.get(i).stringValue();
+                    	node k = arg_syms.get(i);
                         node n2 = eval(nArrayList.get(i+1), env);
-                        local_env.env.put(k, n2);
+//                        local_env.env.put(k, n2);
+                    	local_env.set(((symbol)k.value).code, n2);                    	
                     }
                     
                     len = f.def.size();
