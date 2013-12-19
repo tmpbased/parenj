@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.7.5";
+	public static final String VERSION = "1.7.6";
     public paren() {
         init();
     }
@@ -265,7 +265,7 @@ public class paren {
     }
     
     enum builtin {
-        PLUS, MINUS, MUL, DIV, CARET, PERCENT, SQRT, INC, DEC, PLUSPLUS, MINUSMINUS, FLOOR, CEIL, LN, LOG10, E, PI, RAND,
+        PLUS, MINUS, MUL, DIV, CARET, PERCENT, SQRT, INC, DEC, PLUSPLUS, MINUSMINUS, FLOOR, CEIL, LN, LOG10, RAND,
         EQ, EQEQ, NOTEQ, LT, GT, LTE, GTE, ANDAND, OROR, NOT,
         IF, WHEN, FOR, WHILE,
         STRLEN, STRCAT, CHAR_AT, CHR,
