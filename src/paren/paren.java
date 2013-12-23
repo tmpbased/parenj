@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.7.7";
+	public static final String VERSION = "1.7.8";
     public paren() {
         init();
     }
@@ -444,7 +444,8 @@ public class paren {
     node compile(node n) {    	
         if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
             ArrayList<node> nArrayList = n.arrayListValue();                
-            if (nArrayList.size() == 0) return node_null;
+            //if (nArrayList.size() == 0) return node_null;
+            if (nArrayList.size() == 0) return n;
             node func = compile(nArrayList.get(0));
             if (func.value instanceof symbol && func.toString().equals(("defmacro"))) {
                 // (defmacro add (a b) (+ a b)) ; define macro
@@ -478,7 +479,7 @@ public class paren {
     	}
     	else if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
             ArrayList<node> nArrayList = n.arrayListValue();                
-            if (nArrayList.size() == 0) return node_null;
+            //if (nArrayList.size() == 0) return node_null;
             node func = eval(nArrayList.get(0), env);
             builtin foundBuiltin;
             if (func.value instanceof builtin) {
@@ -672,12 +673,17 @@ public class paren {
                     return new node(Math.log10(eval(nArrayList.get(1), env).doubleValue()));}
                 case RAND: { // (rand)
                     return new node(Math.random());}
-                case SET: { // (set SYMBOL VALUE)
+                case SET: { // (set SYMBOL-OR-PLACE VALUE)
                     node n2 = nArrayList.get(1);
                     node v = eval(nArrayList.get(2), env);
-                    //env.set(n2.toString(), v);
-                    env.set(((symbol)n2.value).code, v);
-                    return v;}
+                    if (n2.value instanceof symbol) {
+	                    //env.set(n2.toString(), v);
+	                    return env.set(((symbol)n2.value).code, v);
+                    } else {
+                    	eval(n2, env).value = v.value;
+                    	return v;
+                    }
+            	}
                 case EQ: { // (= X ..) short-circuit, Object.equals()
                     node first = eval(nArrayList.get(1), env);
                     Object firstv = first.value;
