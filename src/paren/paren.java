@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.7.8";
+	public static final String VERSION = "1.7.9";
     public paren() {
         init();
     }
@@ -159,8 +159,9 @@ public class paren {
         }
         
         node set(int code, node v) {
-        	env.put(code, v);
-        	return v;
+        	node r = (node)v.clone();
+        	env.put(code, r);
+        	return r;
         }
     }
     
@@ -1281,7 +1282,8 @@ public class paren {
             }
         }
         else {
-        	return n.clone();        	
+        	//return n.clone();
+        	return n;
         }
     }
     
