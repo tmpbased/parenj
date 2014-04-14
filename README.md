@@ -25,16 +25,9 @@ OPTIONS:
 ## Reference ##
 ```
 Predefined Symbols:
- ! != % && * + ++ - -- .
- .get .set / < <= = == > >= E
- PI ^ apply begin cast ceil char-at chr cons dec
- defmacro double eval exit false filter floor fn fold for
- if inc int length list ln log10 long map new
- nth null null? pr prn quote rand range read-line read-string
- set slurp spit sqrt strcat string strlen system true type
- when while ||
+ ! != % && * + ++ - -- . .get .set / < <= = == > >= E PI ^ apply begin cast ceil char-at chr cons dec defmacro double eval exit false filter floor fn fold for if inc int length list ln log10 long map new nth null null? pr prn quote rand range read-line read-string set slurp spit sqrt strcat string strlen system thread true type when while ||
 Macros:
- defn setfn
+ defn join setfn
 ```
 
 ## Files ##
@@ -120,6 +113,12 @@ true : java.lang.Boolean
 ```
 > (defmacro infix (a op ...) (op a ...)) (infix 3 + 4 5)
 12
+```
+
+### Thread ###
+```
+> (set t1 (thread (for i 1 10 1 (pr "" i)))) (set t2 (thread (for j 11 20 1 (pr "" j)))) (join t1) (join t2)
+ 1 11 2 12 3  4 5 136 7 8 9  1014 15 16 17 18 19 20 : null
 ```
 
 ### Java interoperability (from Paren) ###

@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.7.10";
+	public static final String VERSION = "1.8";
     public paren() {
         init();
     }
@@ -101,7 +101,6 @@ public class paren {
     static final node node_0 = new node(0);
     static final node node_1 = new node(1);
     static final node node_null = new node();
-    node node_quote;
 
     static class symbol {
 		public static HashMap<String, Integer> symcode = new HashMap<String, Integer>();
@@ -160,9 +159,8 @@ public class paren {
         }
         
         node set(int code, node v) {
-        	node r = (node)v.clone();
-        	env.put(code, r);
-        	return r;
+        	env.put(code, v);
+        	return v;
         }
     }
     
@@ -289,7 +287,7 @@ public class paren {
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
         EVAL, QUOTE, FN, LIST, APPLY, FOLD, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET, NEW,
-        PR, PRN, EXIT, SYSTEM, CONS, LONG, NULLP, CAST, DEFMACRO, READ_LINE, SLURP, SPIT
+        PR, PRN, EXIT, SYSTEM, CONS, LONG, NULLP, CAST, DEFMACRO, READ_LINE, SLURP, SPIT, THREAD
     }
     
     environment global_env = new environment(); // variables. compile-time
@@ -394,10 +392,10 @@ public class paren {
         global_env.env.put(symbol.ToCode("read-line"), new node(builtin.READ_LINE));
         global_env.env.put(symbol.ToCode("slurp"), new node(builtin.SLURP));
         global_env.env.put(symbol.ToCode("spit"), new node(builtin.SPIT));
-        node_quote = global_env.get(symbol.ToCode("quote"));
-
+        global_env.env.put(symbol.ToCode("thread"), new node(builtin.THREAD));
         eval_string("(defmacro setfn (name ...) (set name (fn ...)))");
-		eval_string("(defmacro defn (...) (setfn ...))");        
+		eval_string("(defmacro defn (...) (setfn ...))");
+		eval_string("(defmacro join (t) (. t join))");
     }
     
     HashMap<String, node[]> macros = new HashMap<>();
@@ -443,19 +441,11 @@ public class paren {
 		} else
 			return n;
 	}
-	
-	node quote(node n) {
-		ArrayList<node> r = new ArrayList<node>();
-		r.add(node_quote);
-		r.add(n);
-		return new node(r);
-	}
 
     node compile(node n) {    	
         if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
             ArrayList<node> nArrayList = n.arrayListValue();                
-            //if (nArrayList.size() == 0) return node_null;
-            if (nArrayList.size() == 0) return n;
+            if (nArrayList.size() == 0) return node_null;
             node func = compile(nArrayList.get(0));
             if (func.value instanceof symbol && func.toString().equals(("defmacro"))) {
                 // (defmacro add (a b) (+ a b)) ; define macro
@@ -489,7 +479,7 @@ public class paren {
     	}
     	else if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
             ArrayList<node> nArrayList = n.arrayListValue();                
-            //if (nArrayList.size() == 0) return node_null;
+            if (nArrayList.size() == 0) return node_null;
             node func = eval(nArrayList.get(0), env);
             builtin foundBuiltin;
             if (func.value instanceof builtin) {
@@ -683,17 +673,12 @@ public class paren {
                     return new node(Math.log10(eval(nArrayList.get(1), env).doubleValue()));}
                 case RAND: { // (rand)
                     return new node(Math.random());}
-                case SET: { // (set SYMBOL-OR-PLACE VALUE)
+                case SET: { // (set SYMBOL VALUE)
                     node n2 = nArrayList.get(1);
                     node v = eval(nArrayList.get(2), env);
-                    if (n2.value instanceof symbol) {
-	                    //env.set(n2.toString(), v);
-	                    return env.set(((symbol)n2.value).code, v);
-                    } else {
-                    	eval(n2, env).value = v.value;
-                    	return v;
-                    }
-            	}
+                    //env.set(n2.toString(), v);
+                    env.set(((symbol)n2.value).code, v);
+                    return v;}
                 case EQ: { // (= X ..) short-circuit, Object.equals()
                     node first = eval(nArrayList.get(1), env);
                     Object firstv = first.value;
@@ -974,8 +959,8 @@ public class paren {
                     expr.add(null); // first argument
                     expr.add(null); // second argument
                     for (int i = 1; i < lst.size(); i++) {
-                        expr.set(1, quote(acc));
-                        expr.set(2, quote(lst.get(i)));
+                        expr.set(1, acc);
+                        expr.set(2, lst.get(i));
                         acc = eval(new node(expr), env);
                     }
                     return acc;
@@ -988,7 +973,7 @@ public class paren {
                     expr.add(f);
                     expr.add(null);
                     for (int i = 0; i < lst.size(); i++) {
-                        expr.set(1, quote(lst.get(i)));
+                        expr.set(1, lst.get(i));
                         acc.add(eval(new node(expr), env));
                     }                    
                     return new node(acc);
@@ -1001,7 +986,7 @@ public class paren {
                     expr.add(f);
                     expr.add(null);
                     for (int i = 0; i < lst.size(); i++) {
-                        node item = quote(lst.get(i));
+                        node item = lst.get(i);
                         expr.set(1, item);
                         node ret = eval(new node(expr), env);
                         if (ret.booleanValue()) acc.add(item);
@@ -1067,7 +1052,8 @@ public class paren {
                         Class<?> cls;
                         Object obj = null;
                         String className = nArrayList.get(1).stringValue();
-                        if (nArrayList.get(1).value instanceof symbol) { // class's static method e.g. (. java.lang.Math floor 1.5)                            
+                        //if (nArrayList.get(1).value instanceof symbol) { // class's static method e.g. (. java.lang.Math floor 1.5)
+                        if (nArrayList.get(1).value instanceof symbol && env.get(((symbol)nArrayList.get(1).value).code) == null) { // class's static method e.g. (. System.Math Floor 1.5)	
                             cls = Class.forName(className);
                         } else { // object's method e.g. (. "abc" length)
                             obj = eval(nArrayList.get(1), env).value;
@@ -1106,7 +1092,8 @@ public class paren {
                         Class<?> cls;
                         Object obj = null;
                         String className = nArrayList.get(1).stringValue();
-                        if (nArrayList.get(1).value instanceof symbol) { // class's static field e.g. (.get java.lang.Math PI)                            
+                        //if (nArrayList.get(1).value instanceof symbol) { // class's static field e.g. (.get java.lang.Math PI)
+                        if (nArrayList.get(1).value instanceof symbol && env.get(((symbol)nArrayList.get(1).value).code) == null) { // class's static method e.g. (. System.Math Floor 1.5)
                             cls = Class.forName(className);
                         } else { // object's method
                             obj = eval(nArrayList.get(1), env).value;
@@ -1126,7 +1113,8 @@ public class paren {
                         Class<?> cls;
                         Object obj = null;
                         String className = nArrayList.get(1).stringValue();
-                        if (nArrayList.get(1).value instanceof symbol) { // class's static field e.g. (.get java.lang.Math PI)                            
+                        //if (nArrayList.get(1).value instanceof symbol) { // class's static field e.g. (.get java.lang.Math PI)
+                        if (nArrayList.get(1).value instanceof symbol && env.get(((symbol)nArrayList.get(1).value).code) == null) { // class's static method e.g. (. System.Math Floor 1.5)
                             cls = Class.forName(className);
                         } else { // object's method
                             obj = eval(nArrayList.get(1), env).value;
@@ -1255,6 +1243,16 @@ public class paren {
                 	String str = eval(nArrayList.get(2), env).stringValue();
                 	return new node(spit(filename, str));
                 }
+                case THREAD: { // (thread EXPR ..): Creates new thread and starts it.
+                	final ArrayList<node> exprs = new ArrayList<node>(nArrayList.subList(1, nArrayList.size()));
+                	Thread t = new Thread () {
+                		public void run() {
+                			eval_all(exprs);
+                		}
+                	};                    
+                    t.start();
+                    return new node(t);
+                }                
                 default: {
                     System.err.println("Not implemented function: [" + func.value.toString() + "]");
                     return node_null;}
@@ -1291,8 +1289,7 @@ public class paren {
             }
         }
         else {
-        	//return n.clone();
-        	return n;
+        	return n.clone();        	
         }
     }
     
