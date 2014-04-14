@@ -14,6 +14,7 @@
 // Version 1.6.3: added defmacro ...
 // Version 1.7: package paren
 // Version 1.7.1: improved function call
+// Version 1.8: added thread
 package paren;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -29,7 +30,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.8";
+	public static final String VERSION = "1.8.1";
     public paren() {
         init();
     }
@@ -445,7 +446,7 @@ public class paren {
     node compile(node n) {    	
         if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
             ArrayList<node> nArrayList = n.arrayListValue();                
-            if (nArrayList.size() == 0) return node_null;
+            if (nArrayList.size() == 0) return n;
             node func = compile(nArrayList.get(0));
             if (func.value instanceof symbol && func.toString().equals(("defmacro"))) {
                 // (defmacro add (a b) (+ a b)) ; define macro
@@ -1245,9 +1246,12 @@ public class paren {
                 }
                 case THREAD: { // (thread EXPR ..): Creates new thread and starts it.
                 	final ArrayList<node> exprs = new ArrayList<node>(nArrayList.subList(1, nArrayList.size()));
+                	final environment env2 = env;
                 	Thread t = new Thread () {
                 		public void run() {
-                			eval_all(exprs);
+                			for (node n : exprs) {
+                				eval(n, env2);
+                			}
                 		}
                 	};                    
                     t.start();
