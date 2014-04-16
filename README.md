@@ -1,6 +1,6 @@
-# Parenj: The Paren Programming Language written in Java #
+# ParenJ: The Paren Programming Language written in Java #
 
-(C) 2013 Kim, Taegyoon
+(C) 2013-2014 Kim, Taegyoon
 
 Paren is a dialect of Lisp. It is designed to be an embedded language. You can use Java in your Paren program.
 
@@ -285,12 +285,12 @@ public class parenjTest {
 
 ## Alternative Implementations ##
 * [Paren](https://bitbucket.org/ktg/paren) (Paren running natively)
-* [Parenj](https://bitbucket.org/ktg/parenj) (Paren running on the Java Virtual Machine)
-* [Parenjs](https://bitbucket.org/ktg/parenjs) (Paren compiler targeting JavaScript)
+* [ParenJ](https://bitbucket.org/ktg/parenj) (Paren running on the Java Virtual Machine)
+* [ParenJS](https://bitbucket.org/ktg/parenjs) (Paren compiler targeting JavaScript)
 
 ## License ##
 
-   Copyright 2013 Kim, Taegyoon
+   Copyright 2013-2014 Kim, Taegyoon
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
