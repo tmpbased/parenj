@@ -219,62 +219,7 @@ public class parenjTest {
 (system "notepad" "a.txt")
 ```
 
-### [Project Euler Problem 1](http://projecteuler.net/problem=1) ###
-```
-(set s 0)
-(for i 1 999 1
-    (when (|| (== 0 (% i 3)) (== 0 (% i 5)))
-        (set s (+ s i))))
-(prn s)
-```
-=> 233168
-
-```
-(apply + (filter (fn (x) (|| (== 0 (% x 3)) (== 0 (% x 5)))) (range 1 999 1)))
-```
-=> 233168
-
-### [Project Euler Problem 2](http://projecteuler.net/problem=2) ###
-```
-(set a 1)
-(set b 1)
-(set sum 0)
-(while (<= a 4000000)
-  (set c (+ a b))
-  (set a b)
-  (set b c)
-  (when (== 0 (% a 2))
-    (set sum (+ sum a))))
-(prn sum)
-```
-=> 4613732
-
-### [Project Euler Problem 4](http://projecteuler.net/problem=4) ###
-```
-(set maxP 0)
-(for i 100 999 1
-  (for j i 999 1	
-    (set p (* i j))
-    (set ps (string p))
-    (set len (strlen ps))
-    (set to (/ len 2))
-    (set pal true)
-    (set k 0)
-    (set k2 (dec len))
-    (while
-      (&& (< k to) pal)
-	  (when (!= (char-at ps k) (char-at ps k2))
-		(set pal false))
-	  (++ k)
-	  (-- k2))
-	(when pal
-	  (when (> p maxP)
-		(set maxP p)))))
-(prn maxP)
-```
-=> 906609
-
-[More solutions of Project Euler in Paren](https://bitbucket.org/ktg/euler-paren)
+[Project Euler solutions in Paren](https://bitbucket.org/ktg/euler-paren)
 
 ### [99 Bottles of Beer](http://en.wikipedia.org/wiki/99_Bottles_of_Beer) ###
 ```
