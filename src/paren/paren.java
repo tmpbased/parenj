@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.8.1";
+	public static final String VERSION = "1.9";
     public paren() {
         init();
     }
@@ -41,7 +41,10 @@ public class paren {
         
         node() {}
         node(Object value) {
-            this.value = value;
+        	if (value instanceof Integer)
+        		this.value = new Integer((Integer) value);
+        	else
+        		this.value = value;
         }
         protected node clone() {
         	node r = new node(this.value);
@@ -160,8 +163,9 @@ public class paren {
         }
         
         node set(int code, node v) {
-        	env.put(code, v);
-        	return v;
+        	node v2 = v.clone();
+        	env.put(code, v2);
+        	return v2;
         }
     }
     
@@ -288,7 +292,7 @@ public class paren {
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
         EVAL, QUOTE, FN, LIST, APPLY, FOLD, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET, NEW,
-        PR, PRN, EXIT, SYSTEM, CONS, LONG, NULLP, CAST, DEFMACRO, READ_LINE, SLURP, SPIT, THREAD
+        PR, PRN, EXIT, SYSTEM, CONS, LONG, NULLP, CAST, DEFMACRO, READ_LINE, SLURP, SPIT, THREAD, DEF
     }
     
     environment global_env = new environment(); // variables. compile-time
@@ -394,8 +398,9 @@ public class paren {
         global_env.env.put(symbol.ToCode("slurp"), new node(builtin.SLURP));
         global_env.env.put(symbol.ToCode("spit"), new node(builtin.SPIT));
         global_env.env.put(symbol.ToCode("thread"), new node(builtin.THREAD));
+        global_env.env.put(symbol.ToCode("def"), new node(builtin.DEF));
         eval_string("(defmacro setfn (name ...) (set name (fn ...)))");
-		eval_string("(defmacro defn (...) (setfn ...))");
+        eval_string("(defmacro defn (name ...) (def name (fn ...)))");
 		eval_string("(defmacro join (t) (. t join))");
     }
     
@@ -472,10 +477,10 @@ public class paren {
     	if (n.value instanceof symbol) {
     		//node r = env.get(n.toString());
     		node r = env.get(((symbol)n.value).code);
-    		if (r == null) {
-    			System.err.println("Unknown variable: " + n.toString());
-    			return node_null;
-    		}
+//    		if (r == null) {
+//    			System.err.println("Unknown variable: " + n.toString());
+//    			return node_null;
+//    		}
     		return r;
     	}
     	else if (n.value instanceof ArrayList) { // function (FUNCTION ARGUMENT ..)
@@ -674,12 +679,21 @@ public class paren {
                     return new node(Math.log10(eval(nArrayList.get(1), env).doubleValue()));}
                 case RAND: { // (rand)
                     return new node(Math.random());}
-                case SET: { // (set SYMBOL VALUE)
-                    node n2 = nArrayList.get(1);
-                    node v = eval(nArrayList.get(2), env);
-                    //env.set(n2.toString(), v);
-                    env.set(((symbol)n2.value).code, v);
-                    return v;}
+                case SET: { // (set SYMBOL-OR-PLACE VALUE)
+                    node var = eval(nArrayList.get(1), env);
+                    node value = eval(nArrayList.get(2), env);
+                    if (var == null) {// new variable
+                        return env.set(((symbol)nArrayList.get(1).value).code, value);
+                    }
+                    else {
+                        var.value = value.value;
+                        return var;
+                    }
+                }
+                case DEF: { // (def SYMBOL VALUE) ; set in the current environment
+                    node value = eval(nArrayList.get(2), env);
+                    return env.set(((symbol)nArrayList.get(1).value).code, value);
+                }
                 case EQ: { // (= X ..) short-circuit, Object.equals()
                     node first = eval(nArrayList.get(1), env);
                     Object firstv = first.value;
@@ -1293,7 +1307,8 @@ public class paren {
             }
         }
         else {
-        	return n.clone();        	
+//        	return n.clone();
+        	return n;
         }
     }
     
