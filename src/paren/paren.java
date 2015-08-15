@@ -1,4 +1,4 @@
-// (C) 2013 Kim, Taegyoon
+// (C) 2013-2015 Kim, Taegyoon
 // Paren language core
 //
 // # Changelog
@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.9";
+	public static final String VERSION = "1.10";
     public paren() {
         init();
     }
@@ -961,7 +961,10 @@ public class paren {
                     expr.add(f);
                     ArrayList<node> lst = eval(nArrayList.get(2), env).arrayListValue();
                     for (int i = 0; i < lst.size(); i++) {
-                        expr.add(lst.get(i));
+                    	ArrayList<node> item = new ArrayList<node>();
+                    	item.add(new node(new symbol("quote")));
+                    	item.add(lst.get(i));
+                        expr.add(new node(item));
                     }                    
                     return eval(new node(expr), env);
                 }
