@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.10";
+	public static final String VERSION = "1.11";
     public paren() {
         init();
     }
@@ -1372,6 +1372,7 @@ public class paren {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                code = "";
             }
         }
     }
