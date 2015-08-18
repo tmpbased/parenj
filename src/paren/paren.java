@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.11";
+	public static final String VERSION = "1.11.1";
     public paren() {
         init();
     }
@@ -41,10 +41,7 @@ public class paren {
         
         node() {}
         node(Object value) {
-        	if (value instanceof Integer)
-        		this.value = new Integer((Integer) value);
-        	else
-        		this.value = value;
+    		this.value = value;
         }
         protected node clone() {
         	node r = new node(this.value);
