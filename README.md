@@ -1,6 +1,6 @@
 # ParenJ: The Paren Programming Language written in Java #
 
-(C) 2013-2014 Kim, Taegyoon
+(C) 2013-2015 Kim, Taegyoon
 
 Paren is a dialect of Lisp. It is designed to be an embedded language. You can use Java in your Paren program.
 
@@ -25,14 +25,10 @@ OPTIONS:
 ## Reference ##
 ```
 Predefined Symbols:
- ! != % && * + ++ - -- . .get .set / < <= = == > >= E PI ^ apply begin cast ceil char-at chr cons dec def defmacro double eval exit false filter floor fn fold for if inc int length list ln log10 long map new nth null null? pr prn quote rand range read-line read-string set slurp spit sqrt strcat string strlen system thread true type when while ||
+ ! != % && * + ++ - -- . .get .set / < <= = == > >= E PI ^ apply begin break cast ceil char-at chr cons dec def defmacro double eval exit false filter floor fn fold for if inc int length list ln log10 long map new nth null null? pr prn quote rand range read-line read-string set slurp spit sqrt strcat string strlen system thread true type when while ||
 Macros:
  defn join setfn
 ```
-
-## Files ##
-* paren.java: Paren language library
-* parenj.java: Paren REPL executable
 
 ## Examples ##
 ### Hello, World! ###
@@ -153,21 +149,21 @@ abc : java.lang.String
 #### KOSPI200 Ticker
 ```
 ; KOSPI200 Ticker (C) 2013 KIM Taegyoon
-(set read-url (fn (address)
-  (set url (new java.net.URL address))
-  (set stream (. url openStream))
-  (set buf (new java.io.BufferedReader (cast java.io.Reader (new java.io.InputStreamReader (cast java.io.InputStream stream)))))
-  (set r "")
-  (while (! (null? (set s (. buf readLine))))
+(defn read-url (address)
+  (def url (new java.net.URL address))
+  (def stream (. url openStream))
+  (def buf (new java.io.BufferedReader (cast java.io.Reader (new java.io.InputStreamReader (cast java.io.InputStream stream)))))
+  (def r "")
+  (while (! (null? (def s (. buf readLine))))
     (set r (strcat r s "\n")))
   (. buf close)
-  r))
+  r)
 
-(set get-quote (fn ()
-  (set text (read-url "http://kosdb.koscom.co.kr/main/jisuticker.html"))
-  (set p (. java.util.regex.Pattern compile "KOSPI200.*</font>"))
-  (set m (. p matcher (cast java.lang.CharSequence text)))
-  (if (. m find) (. m group) "")))
+(defn get-quote ()
+  (def text (read-url "http://kosdb.koscom.co.kr/main/jisuticker.html"))
+  (def p (. java.util.regex.Pattern compile "KOSPI200.*</font>"))
+  (def m (. p matcher (cast java.lang.CharSequence text)))
+  (if (. m find) (. m group) ""))
 
 (while true
   (prn (new java.util.Date))
@@ -236,7 +232,7 @@ public class parenjTest {
 
 ## License ##
 
-   Copyright 2013-2014 Kim, Taegyoon
+   Copyright 2013-2015 Kim, Taegyoon
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

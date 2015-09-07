@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class parenj {
     public static Object testField;
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             paren p = new paren();
             p.print_logo();

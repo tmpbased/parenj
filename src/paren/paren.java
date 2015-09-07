@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.11.1";
+	public static final String VERSION = "1.12";
     public paren() {
         init();
     }
@@ -289,7 +289,7 @@ public class paren {
         STRLEN, STRCAT, CHAR_AT, CHR,
         INT, DOUBLE, STRING, READ_STRING, TYPE, SET,
         EVAL, QUOTE, FN, LIST, APPLY, FOLD, MAP, FILTER, RANGE, NTH, LENGTH, BEGIN, DOT, DOTGET, DOTSET, NEW,
-        PR, PRN, EXIT, SYSTEM, CONS, LONG, NULLP, CAST, DEFMACRO, READ_LINE, SLURP, SPIT, THREAD, DEF
+        PR, PRN, EXIT, SYSTEM, CONS, LONG, NULLP, CAST, DEFMACRO, READ_LINE, SLURP, SPIT, THREAD, DEF, BREAK
     }
     
     environment global_env = new environment(); // variables. compile-time
@@ -319,7 +319,7 @@ public class paren {
         print_collection(macros.keySet());
     }    
 
-    void init() {
+    void init() throws Exception {
         global_env.env.put(symbol.ToCode("true"), node_true);
         global_env.env.put(symbol.ToCode("false"), node_false);
         global_env.env.put(symbol.ToCode("E"), new node(2.71828182845904523536));
@@ -396,6 +396,7 @@ public class paren {
         global_env.env.put(symbol.ToCode("spit"), new node(builtin.SPIT));
         global_env.env.put(symbol.ToCode("thread"), new node(builtin.THREAD));
         global_env.env.put(symbol.ToCode("def"), new node(builtin.DEF));
+        global_env.env.put(symbol.ToCode("break"), new node(builtin.BREAK));
         eval_string("(defmacro setfn (name ...) (set name (fn ...)))");
         eval_string("(defmacro defn (name ...) (def name (fn ...)))");
 		eval_string("(defmacro join (t) (. t join))");
@@ -470,7 +471,7 @@ public class paren {
         }
     }    
         
-    node eval(node n, environment env) {
+    node eval(node n, environment env) throws Exception {
     	if (n.value instanceof symbol) {
     		//node r = env.get(n.toString());
     		node r = env.get(((symbol)n.value).code);
@@ -820,89 +821,100 @@ public class paren {
                     return node_null;}
                 case FOR: // (for SYMBOL START END STEP EXPR ..)
                     {
-                        node start = eval(nArrayList.get(2), env);
-                        int len = nArrayList.size();
-                        if (start.value instanceof Integer) {                            
-                            int last = eval(nArrayList.get(3), env).intValue();
-                            int step = eval(nArrayList.get(4), env).intValue();                            
-                            int a = start.intValue();
-                            //node na = nArrayList.get(1);
-                            //node na = env.set(nArrayList.get(1).toString(), new node(a));
-                            node na = env.set(((symbol)nArrayList.get(1).value).code, new node(a));
-                            if (step >= 0) {
-                                for (; a <= last; a += step) {
-                                    na.value = a;
-                                    for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i), env);
-                                    }
-                                }
-                            }
-                            else {
-                                for (; a >= last; a += step) {
-                                    na.value = a;
-                                    for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i), env);
-                                    }
-                                }
-                            }
-                        }
-                        else if (start.value instanceof Long) {
-                            long last = eval(nArrayList.get(3), env).longValue();
-                            long step = eval(nArrayList.get(4), env).longValue();                            
-                            long a = start.longValue();
-                            //node na = nArrayList.get(1);
-                            node na = env.set(((symbol)nArrayList.get(1).value).code, new node(a));
-                            if (step >= 0) {
-                                for (; a <= last; a += step) {
-                                    na.value = a;
-                                    for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i), env);
-                                    }
-                                }
-                            }
-                            else {
-                                for (; a >= last; a += step) {
-                                    na.value = a;
-                                    for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i), env);
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            double last = eval(nArrayList.get(3), env).doubleValue();
-                            double step = eval(nArrayList.get(4), env).doubleValue();                            
-                            double a = start.doubleValue();                            
-                            //node na = nArrayList.get(1);
-                            node na = env.set(((symbol)nArrayList.get(1).value).code, new node(a));
-                            if (step >= 0) {
-                                for (; a <= last; a += step) {
-                                    na.value = a;
-                                    for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i), env);
-                                    }
-                                }
-                            }
-                            else {
-                                for (; a >= last; a += step) {
-                                    na.value = a;
-                                    for (int i = 5; i < len; i++) {
-                                        eval(nArrayList.get(i), env);
-                                    }
-                                }
-                            }
-                        }
+                    	try {
+	                        node start = eval(nArrayList.get(2), env);
+	                        int len = nArrayList.size();
+	                        if (start.value instanceof Integer) {                            
+	                            int last = eval(nArrayList.get(3), env).intValue();
+	                            int step = eval(nArrayList.get(4), env).intValue();                            
+	                            int a = start.intValue();
+	                            //node na = nArrayList.get(1);
+	                            //node na = env.set(nArrayList.get(1).toString(), new node(a));
+	                            node na = env.set(((symbol)nArrayList.get(1).value).code, new node(a));
+	                            if (step >= 0) {
+	                                for (; a <= last; a += step) {
+	                                    na.value = a;
+	                                    for (int i = 5; i < len; i++) {
+	                                        eval(nArrayList.get(i), env);
+	                                    }
+	                                }
+	                            }
+	                            else {
+	                                for (; a >= last; a += step) {
+	                                    na.value = a;
+	                                    for (int i = 5; i < len; i++) {
+	                                        eval(nArrayList.get(i), env);
+	                                    }
+	                                }
+	                            }
+	                        }
+	                        else if (start.value instanceof Long) {
+	                            long last = eval(nArrayList.get(3), env).longValue();
+	                            long step = eval(nArrayList.get(4), env).longValue();                            
+	                            long a = start.longValue();
+	                            //node na = nArrayList.get(1);
+	                            node na = env.set(((symbol)nArrayList.get(1).value).code, new node(a));
+	                            if (step >= 0) {
+	                                for (; a <= last; a += step) {
+	                                    na.value = a;
+	                                    for (int i = 5; i < len; i++) {
+	                                        eval(nArrayList.get(i), env);
+	                                    }
+	                                }
+	                            }
+	                            else {
+	                                for (; a >= last; a += step) {
+	                                    na.value = a;
+	                                    for (int i = 5; i < len; i++) {
+	                                        eval(nArrayList.get(i), env);
+	                                    }
+	                                }
+	                            }
+	                        }
+	                        else {
+	                            double last = eval(nArrayList.get(3), env).doubleValue();
+	                            double step = eval(nArrayList.get(4), env).doubleValue();                            
+	                            double a = start.doubleValue();                            
+	                            //node na = nArrayList.get(1);
+	                            node na = env.set(((symbol)nArrayList.get(1).value).code, new node(a));
+	                            if (step >= 0) {
+	                                for (; a <= last; a += step) {
+	                                    na.value = a;
+	                                    for (int i = 5; i < len; i++) {
+	                                        eval(nArrayList.get(i), env);
+	                                    }
+	                                }
+	                            }
+	                            else {
+	                                for (; a >= last; a += step) {
+	                                    na.value = a;
+	                                    for (int i = 5; i < len; i++) {
+	                                        eval(nArrayList.get(i), env);
+	                                    }
+	                                }
+	                            }
+	                        }
+                    	} catch (BreakException e) {
+                    		
+                    	}
                         return node_null;
                     }
                 case WHILE: { // (while CONDITION EXPR ..)
-                    node cond = nArrayList.get(1);
-                    int len = nArrayList.size();
-                    while (eval(cond, env).booleanValue()) {
-                        for (int i = 2; i < len; i++) {
-                            eval(nArrayList.get(i), env);
-                        }
+                    try {
+	                    node cond = nArrayList.get(1);
+	                    int len = nArrayList.size();
+	                    while (eval(cond, env).booleanValue()) {
+	                        for (int i = 2; i < len; i++) {
+	                            eval(nArrayList.get(i), env);
+	                        }
+	                    }
+                    } catch (BreakException E) {
+                    
                     }
                     return node_null; }
+                case BREAK: { // (break)
+                	throw new BreakException();
+                }
                 case STRLEN: { // (strlen X)
                     return new node(eval(nArrayList.get(1), env).stringValue().length());}
                 case STRCAT: { // (strcat X ..)
@@ -1264,7 +1276,12 @@ public class paren {
                 	Thread t = new Thread () {
                 		public void run() {
                 			for (node n : exprs) {
-                				eval(n, env2);
+                				try {
+									eval(n, env2);
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
                 			}
                 		}
                 	};                    
@@ -1321,7 +1338,7 @@ public class paren {
         return compiled;
     }    
 
-    node eval_all(ArrayList<node> lst) {        
+    node eval_all(ArrayList<node> lst) throws Exception {        
         int last = lst.size() - 1;
         if (last < 0) return node_null;
         node ret = null;
@@ -1331,12 +1348,12 @@ public class paren {
         return ret;
     }
         
-    public node eval_string(String s) {
+    public node eval_string(String s) throws Exception {
         ArrayList<node> compiled = compile_all(parse(s));
         return eval_all(compiled);
     }
     
-    void eval_print(String s) {
+    void eval_print(String s) throws Exception {
         System.out.println(eval_string(s).str_with_type());
     }
     
