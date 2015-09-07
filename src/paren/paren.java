@@ -305,7 +305,7 @@ public class paren {
     }
 
     public void print_logo() {
-        System.out.println("Parenj " + VERSION + " (C) 2013 Kim, Taegyoon");
+        System.out.println("ParenJ " + VERSION);
         System.out.println("Predefined Symbols:");
         ArrayList<String> r = new ArrayList<String>(global_env.env.keySet().size());
         for (int x : global_env.env.keySet()) {
