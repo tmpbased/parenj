@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class paren {
-	public static final String VERSION = "1.12";
+	public static final String VERSION = "1.12.1";
     public paren() throws Exception {
         init();
     }
@@ -69,8 +69,12 @@ public class paren {
         		return Long.parseLong(stringValue());
         	}
         }
-        boolean booleanValue() {
-            return (Boolean) value;
+        boolean booleanValue() { // null is false, other type is true.
+        	if (value == null) return false;
+        	if (value instanceof Boolean)
+        		return (Boolean) value;
+        	else
+        		return true;
         }
         String stringValue() {
             if (value == null) return "";
