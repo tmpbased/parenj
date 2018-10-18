@@ -1,4 +1,4 @@
-package paren;
+package org.bitbucket.ktg;
 
 public class BreakException extends Exception {
 	private static final long serialVersionUID = 1L;

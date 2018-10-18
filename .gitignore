@@ -1,6 +1,11 @@
 # java specific
 *.class
 
+# eclipse
+/.settings/
+/.project
+/.classpath
+
 # netbeans ignore personal stuff 
 nbproject/private/
 
@@ -11,3 +16,4 @@ nbproject/private/
 *.swp
 *.out
 /bin/
+/target/

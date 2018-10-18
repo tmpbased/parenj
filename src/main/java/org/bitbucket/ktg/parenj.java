@@ -1,4 +1,4 @@
-package paren;
+package org.bitbucket.ktg;
 import java.io.IOException;
 
 // (C) 2013-2015 Kim, Taegyoon
@@ -25,8 +25,8 @@ public class parenj {
                 System.out.println(paren.VERSION);
                 return;
             }
-        }        
-        
+        }
+
         // execute files, one by one
         for (String fileName : args) {
             paren p = new paren();
